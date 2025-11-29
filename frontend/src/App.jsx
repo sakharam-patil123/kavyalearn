@@ -16,6 +16,7 @@ import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Subscription from "./pages/Subscription";
 import PaymentInterface from "./components/PaymentInterface";
+import AdminPanel from "./pages/AdminPanel/AdminPanel";
 
 function Layout() {
   const location = useLocation();
@@ -68,6 +69,7 @@ function Layout() {
           <Route path="/payment" element={<PaymentInterface />}></Route>
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminPanel />} />
         </Routes>
       </main>
     </div>
