@@ -49,9 +49,14 @@ function LoginPage() {
       // Store token and user info
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data));
-      localStorage.setItem("role", data.role);
- 
-      navigate("/dashboard");
+      localStorage.setItem("userRole", data.role);
+      
+      // Redirect based on role
+      if (data.role === 'admin' || data.role === 'sub-admin') {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError("Connection error. Please try again.");
       setLoading(false);

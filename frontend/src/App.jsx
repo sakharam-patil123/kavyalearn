@@ -16,7 +16,13 @@ import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Subscription from "./pages/Subscription";
 import PaymentInterface from "./components/PaymentInterface";
-import AdminPanel from "./pages/AdminPanel/AdminPanel";
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminStudents from './pages/admin/AdminStudents';
+import AdminCourses from './pages/admin/AdminCourses';
+import AdminEnrollments from './pages/admin/AdminEnrollments';
+import AdminSettings from './pages/admin/AdminSettings';
+
 
 function Layout() {
   const location = useLocation();
@@ -64,12 +70,17 @@ function Layout() {
 
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/courses" element={<Courses />} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/students" element={<ProtectedRoute requireAdmin={true}><AdminStudents /></ProtectedRoute>} />
+          <Route path="/admin/courses" element={<ProtectedRoute requireAdmin={true}><AdminCourses /></ProtectedRoute>} />
+          <Route path="/admin/enrollments" element={<ProtectedRoute requireAdmin={true}><AdminEnrollments /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute requireAdmin={true}><AdminSettings /></ProtectedRoute>} />
           <Route path="/subscription" element={<Subscription />}></Route>
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/payment" element={<PaymentInterface />}></Route>
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<AdminPanel />} />
+         
         </Routes>
       </main>
     </div>

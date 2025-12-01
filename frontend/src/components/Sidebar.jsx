@@ -14,10 +14,14 @@ import logo from "../assets/logo.png";
 
 function Sidebar({ isOpen, setIsOpen }) {
   const [isMobile, setIsMobile] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
-  // Detect screen size
+  // Detect screen size and get user role
   useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setUserRole(role);
+
     const checkScreen = () => {
       if (window.innerWidth <= 1024) {
         setIsMobile(true);
@@ -36,6 +40,12 @@ function Sidebar({ isOpen, setIsOpen }) {
   const navItems = [
     { path: "/dashboard", label: "Dashboard", icon: <FiHome /> },
     { path: "/courses", label: "Courses", icon: <FiBookOpen /> },
+    ...(userRole === 'admin' || userRole === 'sub-admin' ? [
+      { path: "/admin/dashboard", label: "Admin Dashboard", icon: <TbReportAnalytics /> },
+      { path: "/admin/students", label: "Manage Students", icon: <LuUser /> },
+      { path: "/admin/courses", label: "Manage Courses", icon: <FiBookOpen /> },
+      { path: "/admin/settings", label: "Admin Settings", icon: <TbReportAnalytics /> },
+    ] : []),
     {
       path: "/subscription",
       label: "Subscriptions",

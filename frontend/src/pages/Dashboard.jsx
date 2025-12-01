@@ -5,24 +5,13 @@ import chatbot from "../assets/chatbot.png";
 import trophy from "../assets/leaderboard-trophy.png";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import AppLayout from "../components/AppLayout";
-import ChatBox from "../components/ChatBox";
+import ChatBox from "../components/ChatBox"; // ✅ Import ChatBox
 import "../assets/dashboard.css";
 
 function Dashboard() {
   const [activeVideo, setActiveVideo] = useState(null);
-  const [openChat, setOpenChat] = useState(false);
+  const [openChat, setOpenChat] = useState(false); // ✅ Chat state
   const [user, setUser] = useState(null);
-  
-  // Stats from backend
-  const [stats, setStats] = useState({
-    totalHoursLearned: 0,
-    totalCourses: 0,
-    achievementsCount: 0,
-    achievements: []
-  });
-  
-  // Courses from backend
-  const [courses, setCourses] = useState([]);
 
   // ANNOUNCEMENTS
   const [announcements] = useState([
@@ -31,6 +20,13 @@ function Dashboard() {
     { text: "AI mentor improvements released", link: "https://example.com/ai" },
     { text: "Exams scheduled for next week", link: "https://example.com/exams" },
   ]);
+
+  // COURSES
+  const courses = [
+    { name: "Introduction to AI", progress: 0 },
+    { name: "Web Development", progress: 0 },
+    { name: "Data Structures", progress: 0 },
+  ];
 
   // UPCOMING CLASSES
   const upcoming = [
@@ -46,6 +42,7 @@ function Dashboard() {
     { name: "Rahul", score: 820 },
   ];
 
+  // ✅ Greeting passed to Header from Dashboard ONLY
   const firstName = user?.fullName ? user.fullName.split(' ')[0] : (user?.email ? user.email.split('@')[0] : 'User');
   const greeting = (
     <div>
@@ -59,48 +56,27 @@ function Dashboard() {
   );
 
   useEffect(() => {
-    async function loadProfileAndStats() {
+    // Lazy-load profile; use the app's API helper if available.
+    async function loadProfile() {
       try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        };
-
-        // Load profile
-        const profileRes = await fetch('/api/users/profile', { headers });
-        if (profileRes.ok) {
-          const userData = await profileRes.json();
-          setUser(userData);
-        }
-
-        // Load stats
-        const statsRes = await fetch('/api/users/stats', { headers });
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-
-        // Load courses
-        const coursesRes = await fetch('/api/users/courses', { headers });
-        if (coursesRes.ok) {
-          const coursesData = await coursesRes.json();
-          setCourses(coursesData.courses || []);
-        }
+        const res = await fetch('/api/auth/profile', { headers: { 'Content-Type': 'application/json', Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined } });
+        if (!res.ok) return;
+        const data = await res.json();
+        setUser(data);
       } catch (err) {
-        console.warn('Could not load dashboard data', err);
+        console.warn('Could not load profile', err);
       }
     }
-    loadProfileAndStats();
+    loadProfile();
   }, []);
 
   return (
     <AppLayout showGreeting={true} greetingContent={greeting}>
       {/* ============ STAT CARDS ============ */}
       <div className="stats">
-        <StatCard title="Total Courses" value={stats.totalCourses} color2="#1D3E69" color1="#397ACF" IconComponent={LuBookOpen} />
-        <StatCard title="Hours Learned" value={Math.round(stats.totalHoursLearned)} color1="#35AAAD" color2="#2B73B0" IconComponent={LuClock4} />
-        <StatCard title="Achievements" value={stats.achievementsCount} color1="#46BA7D" color2="#3CB49F" IconComponent={LuAward} />
+        <StatCard title="Total Courses" value="12" color2="#1D3E69" color1="#397ACF" IconComponent={LuBookOpen} />
+        <StatCard title="Hours Learned" value="124" color1="#35AAAD" color2="#2B73B0" IconComponent={LuClock4} />
+        <StatCard title="Achievements" value="8" color1="#46BA7D" color2="#3CB49F" IconComponent={LuAward} />
       </div>
 
       {/* ============ ANNOUNCEMENTS SCROLL ============ */}
@@ -119,28 +95,22 @@ function Dashboard() {
         {/* ============ LEFT SECTION ============ */}
         <div className="left">
           {/* YOUR COURSES */}
-          <div className="card" style={{ borderRadius: "15px", height: "auto", minHeight: "295px" }}>
+          <div className="card" style={{ borderRadius: "15px", height: "295px" }}>
             <div className="card-header bg-white" style={{ borderColor: "white" }}>
               <h3 className="fw-normal">Your Courses</h3>
               <button className="view-btn">View All</button>
             </div>
-            {courses.length > 0 ? (
-              courses.map((course) => (
-                <div key={course._id} className="progress-item">
-                  <div className="label">
-                    <span>{course.title}</span>
-                    <span>{Math.round(course.completionPercentage)}%</span>
-                  </div>
-                  <div className="progress-bar-dash">
-                    <div className="progress-fill" style={{ width: `${course.completionPercentage}%` }} />
-                  </div>
+            {courses.map((course) => (
+              <div key={course.name} className="progress-item">
+                <div className="label">
+                  <span>{course.name}</span>
+                  <span>{course.progress}%</span>
                 </div>
-              ))
-            ) : (
-              <p style={{ padding: "12px", textAlign: "center", color: "#999" }}>
-                No courses enrolled yet. Explore courses to get started!
-              </p>
-            )}
+                <div className="progress-bar-dash">
+                  <div className="progress-fill" style={{ width: `${course.progress}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* UPCOMING LIVE CLASSES */}
@@ -182,6 +152,7 @@ function Dashboard() {
               Need help with your studies? Chat with Kavya, your personal AI tutor available 24/7.
             </p>
 
+            {/* ✅ Open ChatBox on button click */}
             <button onClick={() => setOpenChat(true)}>Start Chat</button>
           </div>
 
@@ -206,19 +177,20 @@ function Dashboard() {
           <div className="card recent-achievements" style={{ borderRadius: "15px" }}>
             <h3>Recent Achievements</h3>
             <ul className="achievement-ul">
-              {stats.achievements.length > 0 ? (
-                stats.achievements.slice(0, 2).map((ach, i) => (
-                  <li key={i} className="achievement-li">
-                    <LuAward style={{ marginRight: "8px" }} />
-                    <div>
-                      <h4 className="achievement fw-normal">{ach.name}</h4>
-                      <p className="achievement-p">{ach.description}</p>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <li style={{ textAlign: "center", color: "#999", padding: "12px" }}>No achievements yet</li>
-              )}
+              <li className="achievement-li">
+                <FaArrowTrendUp style={{ marginRight: "8px" }} />
+                <div>
+                  <h4 className="achievement fw-normal">Fast Learner</h4>
+                  <p className="achievement-p">Completed 5 courses in 30 days</p>
+                </div>
+              </li>
+              <li className="achievement-li">
+                <LuClock4 style={{ marginRight: "8px" }} />
+                <div>
+                  <h4 className="achievement fw-normal">Perfect Attendance</h4>
+                  <p className="achievement-p">100% attendance this month</p>
+                </div>
+              </li>
             </ul>
           </div>
         </div>

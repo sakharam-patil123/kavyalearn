@@ -65,9 +65,10 @@ function Header({ onToggleSidebar, children }) {
   }, []);
  
   const handleLogout = () => {
-    // Clear session
+    // Clear session and user role
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
    
     // Close dropdown
     setShowDropdown(false);

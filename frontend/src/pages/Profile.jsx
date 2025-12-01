@@ -32,30 +32,54 @@ export default function Profile() {
 
   const [profile, setProfile] = useState({
     initials: "DK",
-    name: "Loading...",
-    badge: "Student",
-    bio: "Welcome to your learning journey!",
-    email: "loading@example.com",
-    phone: "+91 00000 00000",
-    location: "Not specified",
-    joined: "Joined recently",
+    name: "Deepak Kumar",
+    badge: "Premium Member",
+    bio: "Passionate learner exploring web development and computer science. On a mission to master full-stack development!",
+    email: "deepak@example.com",
+    phone: "+91 98765 43210",
+    location: "Mumbai, India",
+    joined: "Joined March 2024",
     stats: {
-      courses: 0,
-      hours: 0,
-      achievements: 0,
-      avg: 0,
+      courses: 12,
+      hours: 124,
+      achievements: 8,
+      avg: "95%",
     },
   });
 
-  const [profileCourses, setProfileCourses] = useState([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const api = await import("../api");
+        const res = await api.getProfile();
+        if (res && res._id) {
+          setProfile((prev) => ({
+            ...prev,
+            name: res.fullName || prev.name,
+            email: res.email || prev.email,
+            initials: (res.fullName || prev.name).split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase(),
+            joined: res.createdAt ? `Joined ${new Date(res.createdAt).toLocaleString()}` : prev.joined,
+            // stats mapping if available
+            stats: {
+              courses: prev.stats.courses,
+              hours: prev.stats.hours,
+              achievements: prev.stats.achievements,
+              avg: prev.stats.avg,
+            }
+          }));
+        }
+      } catch (err) {
+        // ignore if unauthenticated
+      }
+    })();
+  }, []);
 
-  // Skills and Activities data
   const skills = [
-    { name: "JavaScript", percent: 90, color: "#1b65d4" },
-    { name: "Python", percent: 85, color: "#2db88e" },
-    { name: "React", percent: 80, color: "#4acb9a" },
-    { name: "Data Structures", percent: 75, color: "#1b65d4" },
-    { name: "Web Development", percent: 88, color: "#27c5aa" },
+    { name: "JavaScript", percent: 0, color: "#1b65d4" },
+    { name: "Python", percent: 0, color: "#2db88e" },
+    { name: "React", percent: 0, color: "#4acb9a" },
+    { name: "Data Structures", percent: 0, color: "#1b65d4" },
+    { name: "Web Development", percent: 0, color: "#27c5aa" },
   ];
 
   const activities = [
@@ -93,47 +117,6 @@ export default function Profile() {
     style: "Visual",
     notifications: "Enabled",
   };
-
-  useEffect(() => {
-    async function loadProfileData() {
-      try {
-        const token = localStorage.getItem('token');
-        const headers = {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        };
-
-        // Load profile with stats
-        const profileRes = await fetch('/api/users/profile', { headers });
-        if (profileRes.ok) {
-          const res = await profileRes.json();
-          setProfile((prev) => ({
-            ...prev,
-            name: res.fullName || prev.name,
-            email: res.email || prev.email,
-            initials: (res.fullName || prev.name).split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase(),
-            joined: res.createdAt ? `Joined ${new Date(res.createdAt).toLocaleDateString()}` : prev.joined,
-            stats: {
-              courses: res.stats?.totalCourses || 0,
-              hours: res.stats?.hoursLearned || 0,
-              achievements: res.stats?.achievementsCount || 0,
-              avg: res.stats?.averageScore || 0,
-            }
-          }));
-        }
-
-        // Load profile courses
-        const coursesRes = await fetch('/api/users/profile/courses', { headers });
-        if (coursesRes.ok) {
-          const coursesData = await coursesRes.json();
-          setProfileCourses(coursesData.courses || []);
-        }
-      } catch (err) {
-        console.warn('Could not load profile', err);
-      }
-    }
-    loadProfileData();
-  }, []);
 
   const handleDownloadCertificate = (cert) => {
     const doc = new jsPDF("landscape", "pt", "a4");
@@ -203,7 +186,7 @@ export default function Profile() {
     alert("✅ Profile updated successfully!");
   };
 
-  // Prevent background scrolling when modal is open
+  // prevent background scrolling when modal is open
   useEffect(() => {
     document.body.classList.toggle("modal-open", isEditing || isContactModalOpen);
   }, [isEditing, isContactModalOpen]);
@@ -405,102 +388,48 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* === Enrolled Courses Section === */}
-        <div className="courses-section">
-          <div className="courses-header">
-            <h3>Your Enrolled Courses</h3>
-            {profileCourses.length > 0 && <span className="course-count">{profileCourses.length} courses</span>}
-          </div>
-          {profileCourses.length > 0 ? (
-            <div className="courses-grid">
-              {profileCourses.map((course) => (
-                <div key={course._id} className="course-card">
-                  {course.thumbnail && (
-                    <div className="course-thumbnail">
-                      <img src={course.thumbnail} alt={course.title} />
-                    </div>
-                  )}
-                  <div className="course-info">
-                    <h4>{course.title}</h4>
-                    <p className="course-category">{course.category}</p>
-                    <div className="course-progress">
-                      <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${course.completionPercentage}%` }} />
-                      </div>
-                      <span className="progress-text">{Math.round(course.completionPercentage)}% Complete</span>
-                    </div>
-                    <div className="course-stats">
-                      <span>{course.completedLessons} lessons completed</span>
-                      <span>{course.hoursSpent}h spent</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="no-courses">
-              <p>No courses enrolled yet. Explore courses to get started!</p>
-            </div>
-          )}
-        </div>
-
-        {/* === Modal for Editing Profile === */}
+        {/* === 🧩 Modal for Editing Profile === */}
         {isEditing && (
           <div className="modal-overlay">
             <div className="modal-content">
               <h2>Edit Profile</h2>
               <form className="edit-form" onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label htmlFor="name">Full Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={profile.name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={profile.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="phone">Phone</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={profile.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="location">Location</label>
-                  <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    value={profile.location}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="bio">Bio</label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    value={profile.bio}
-                    onChange={handleChange}
-                    rows="4"
-                  />
-                </div>
-                <div className="modal-actions">
+                <input
+                  type="text"
+                  name="name"
+                  value={profile.name}
+                  onChange={handleChange}
+                  placeholder="Name"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={profile.email}
+                  onChange={handleChange}
+                  placeholder="Email"
+                />
+                <input
+                  type="text"
+                  name="phone"
+                  value={profile.phone}
+                  onChange={handleChange}
+                  placeholder="Phone"
+                />
+                <input
+                  type="text"
+                  name="location"
+                  value={profile.location}
+                  onChange={handleChange}
+                  placeholder="Location"
+                />
+                <textarea
+                  name="bio"
+                  value={profile.bio}
+                  onChange={handleChange}
+                  placeholder="Bio"
+                  rows={3}
+                />
+                <div className="form-buttons">
                   <button type="submit" className="btn-save">
                     Save Changes
                   </button>
@@ -517,7 +446,7 @@ export default function Profile() {
           </div>
         )}
 
-        {/* === Modal for Contact Support === */}
+        {/* === 🧩 Modal for Contact Support === */}
         {isContactModalOpen && (
           <div className="modal-overlay">
             <div className="modal-content">
@@ -527,7 +456,7 @@ export default function Profile() {
                 <Phone size={24} />
                 <a href="tel:+918888999910" className="phone-link">+91 8888999910</a>
               </div>
-              <div className="modal-actions">
+              <div className="form-buttons">
                 <button
                   type="button"
                   className="btn-cancel"
