@@ -226,9 +226,143 @@
   color: #6c7a86;
 }
 
-.lesson-action {
-  color: #0b63a5;
-  font-size: 14px;
+/* ===== ENHANCED BUTTON STYLES FOR START/LOCKED LESSONS ===== */
+
+/* Updated lesson action button styles with modern design */
+.lesson-action,
+.lesson-action1 {
+  background: linear-gradient(135deg, #ffffff, #f8fbfd) !important;
+  color: #0b63a5 !important;
+  border: 1.5px solid #d0dfe8 !important;
+  padding: 10px 16px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 2px 4px rgba(11, 99, 165, 0.08) !important;
+  letter-spacing: 0.3px !important;
+  text-transform: capitalize !important;
+}
+
+/* Start button - enabled state */
+.lesson-action:not([disabled]),
+.lesson-action1:not([disabled]) {
+  background: linear-gradient(135deg, #f0f8ff, #ffffff) !important;
+  border-color: #a8d5f7 !important;
+  color: #0b63a5 !important;
+}
+
+/* Start button - hover state */
+.lesson-action:hover:not([disabled]),
+.lesson-action1:hover:not([disabled]) {
+  background: linear-gradient(135deg, #0b63a5, #0a5a93) !important;
+  color: #ffffff !important;
+  border-color: #0b63a5 !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 16px rgba(11, 99, 165, 0.25) !important;
+}
+
+/* Start button - active state */
+.lesson-action:active:not([disabled]),
+.lesson-action1:active:not([disabled]) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(11, 99, 165, 0.2) !important;
+}
+
+/* Locked button - disabled state */
+.lesson-action[disabled],
+.lesson-action1[disabled] {
+  background: linear-gradient(135deg, #f5f7fa, #eff2f7) !important;
+  color: #9fb7bd !important;
+  border-color: #dde5eb !important;
+  cursor: not-allowed !important;
+  opacity: 0.8 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Locked button - hover state (still disabled) */
+.lesson-action[disabled]:hover,
+.lesson-action1[disabled]:hover {
+  background: linear-gradient(135deg, #f5f7fa, #eff2f7) !important;
+  color: #9fb7bd !important;
+  border-color: #dde5eb !important;
+  transform: none !important;
+  cursor: not-allowed !important;
+}
+
+/* Icon styling for buttons */
+.lesson-action i,
+.lesson-action1 i {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  transition: transform 0.25s ease !important;
+}
+
+.lesson-action:hover:not([disabled]) i,
+.lesson-action1:hover:not([disabled]) i {
+  transform: scale(1.1) !important;
+}
+
+/* Icon for locked buttons */
+.lesson-action[disabled] i,
+.lesson-action1[disabled] i {
+  color: #b8c9d4 !important;
+  opacity: 0.7 !important;
+}
+
+/* Enhanced icon background styling */
+.lesson-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  background: linear-gradient(135deg, #e6f4ff, #f0f8ff) !important;
+  color: #0b63a5 !important;
+  box-shadow: 0 2px 6px rgba(11, 99, 165, 0.12) !important;
+  transition: all 0.25s ease !important;
+}
+
+/* Enhanced muted circle for locked lessons */
+.muted-circle {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  background: linear-gradient(135deg, #fef0f0, #faf7f7) !important;
+  color: #c0b3b3 !important;
+  box-shadow: 0 2px 6px rgba(192, 179, 179, 0.08) !important;
+  transition: all 0.25s ease !important;
+}
+
+/* Watched icon appearance - green checkmark */
+.lesson-icon.watched {
+  background: linear-gradient(135deg, #e8faf5, #f0fef9) !important;
+  color: #0bb287 !important;
+  box-shadow: 0 2px 6px rgba(11, 178, 135, 0.15) !important;
+}
+
+/* Available lesson icon */
+.lesson-icon.available {
+  background: linear-gradient(135deg, #e6f4ff, #f0f8ff) !important;
+  color: #0b63a5 !important;
+  box-shadow: 0 2px 6px rgba(11, 99, 165, 0.15) !important;
+}
+
+/* Accessibility - focus state */
+.lesson-action:focus,
+.lesson-action1:focus {
+  outline: 2px solid #0b63a5 !important;
+  outline-offset: 2px !important;
 }
 
 /* info box for other tabs */
@@ -563,6 +697,27 @@
   color: #075a8b;
 }
 /* Apply 3-per-row layout only on mobile */
+@media (max-width: 768px) {
+  .lesson-action,
+  .lesson-action1 {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    border-radius: 10px !important;
+  }
+  
+  .lesson-action i,
+  .lesson-action1 i {
+    font-size: 15px !important;
+  }
+  
+  .lesson-icon,
+  .muted-circle {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 18px !important;
+  }
+}
+
 @media (max-width: 576px) {
   .tabs-row {
     display: flex;
