@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axiosClient from '../../api/axiosClient';
 import AppLayout from '../../components/AppLayout';
 import CreateCourseModal from '../../components/CreateCourseModal';
+import EditCourseModal from '../../components/EditCourseModal';
 
 const AdminCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   const loadCourses = async () => {
     try {
@@ -19,6 +22,23 @@ const AdminCourses = () => {
     }
   };
 
+  const handleDelete = async (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      try {
+        await axiosClient.delete(`/api/admin/courses/${courseId}`);
+        alert('Course deleted successfully');
+        loadCourses();
+      } catch (err) {
+        alert('Error: ' + (err.response?.data?.message || err.message));
+      }
+    }
+  };
+
+  const handleEdit = (course) => {
+    setSelectedCourse(course);
+    setEditModalOpen(true);
+  };
+
   useEffect(() => {
     loadCourses();
   }, []);
@@ -29,9 +49,10 @@ const AdminCourses = () => {
     <AppLayout showGreeting={false}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2>Courses</h2>
-        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>Add Course</button>
+        <button className="btn btn-primary" onClick={() => setCreateModalOpen(true)}>Add Course</button>
       </div>
-      <CreateCourseModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSuccess={loadCourses} />
+      <CreateCourseModal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} onSuccess={loadCourses} />
+      <EditCourseModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} onSuccess={loadCourses} course={selectedCourse} />
       <table className="table">
         <thead>
           <tr>
@@ -40,6 +61,7 @@ const AdminCourses = () => {
             <th>Level</th>
             <th>Status</th>
             <th>Duration (hrs)</th>
+            <th style={{ width: '120px' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -49,7 +71,22 @@ const AdminCourses = () => {
               <td>{c.category}</td>
               <td>{c.level}</td>
               <td>{c.status}</td>
-              <td>{c.durationHours}</td>
+              <td>{c.durationHours || (c.duration ? c.duration.split(' ')[0] : '0')}</td>
+              <td style={{ textAlign: 'center' }}>
+                <button 
+                  className="btn btn-sm btn-warning" 
+                  onClick={() => handleEdit(c)}
+                  style={{ marginRight: '5px' }}
+                >
+                  ✏️ Edit
+                </button>
+                <button 
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDelete(c._id)}
+                >
+                  🗑️ Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

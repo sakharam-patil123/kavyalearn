@@ -11,6 +11,11 @@ const StudentReport = () => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkEmail, setLinkEmail] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState('');
 
   useEffect(() => {
     // Check if user is parent
@@ -57,6 +62,74 @@ const StudentReport = () => {
     fetchStudentReport(child._id);
   };
 
+  const handleSearchStudents = async (email) => {
+    setLinkEmail(email);
+    if (email.length < 2) {
+      setSearchResults([]);
+      setLinkError('');
+      return;
+    }
+
+    try {
+      setLinkLoading(true);
+      setLinkError('');
+      console.log('Searching for students with email:', email);
+      
+      const response = await axiosClient.get('/api/reports/search-students', {
+        params: { email: email.trim() }
+      });
+      
+      console.log('Search response:', response.data);
+      setSearchResults(response.data.students || []);
+      
+      if (!response.data.students || response.data.students.length === 0) {
+        setLinkError(`No students found with email "${email}". Make sure the student account is registered.`);
+      }
+    } catch (err) {
+      console.error('Search error details:', err.response?.data || err.message);
+      setLinkError(err.response?.data?.message || 'Failed to search students. Please try again.');
+      setSearchResults([]);
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  const handleLinkStudent = async (studentId) => {
+    try {
+      setLinkLoading(true);
+      await axiosClient.post('/api/reports/add-child', {
+        childEmail: searchResults.find(s => s._id === studentId)?.email
+      });
+      setLinkError('');
+      setLinkEmail('');
+      setSearchResults([]);
+      setShowLinkModal(false);
+      fetchChildren();
+      alert('Student linked successfully!');
+    } catch (err) {
+      setLinkError(err.response?.data?.message || 'Failed to link student');
+      console.error(err);
+    } finally {
+      setLinkLoading(false);
+    }
+  };
+
+  const handleRemoveChild = async (childId) => {
+    if (window.confirm('Are you sure you want to remove this student?')) {
+      try {
+        await axiosClient.delete(`/api/reports/remove-child/${childId}`);
+        fetchChildren();
+        if (selectedChild?._id === childId) {
+          setSelectedChild(null);
+          setReportData(null);
+        }
+      } catch (err) {
+        setError('Failed to remove student');
+        console.error(err);
+      }
+    }
+  };
+
   return (
     <AppLayout>
       <div className="student-report-container">
@@ -71,20 +144,38 @@ const StudentReport = () => {
         <div className="report-layout">
           {/* Children List Sidebar */}
           <div className="children-list">
-            <h3>Select Student</h3>
+            <div className="list-header">
+              <h3>Select Student</h3>
+              <button className="link-btn" onClick={() => setShowLinkModal(true)}>
+                + Link Student
+              </button>
+            </div>
             {children.length === 0 ? (
-              <p className="no-children">No children added yet</p>
+              <p className="no-children">No students linked yet. Click "Link Student" to add one.</p>
             ) : (
               <div className="children-items">
                 {children.map(child => (
-                  <button
-                    key={child._id}
-                    className={`child-item ${selectedChild?._id === child._id ? 'active' : ''}`}
-                    onClick={() => handleChildSelect(child)}
-                  >
-                    <span className="child-name">{child.fullName}</span>
-                    <span className="child-email">{child.email}</span>
-                  </button>
+                  <div key={child._id} className="child-item-wrapper">
+                    <button
+                      className={`child-item ${selectedChild?._id === child._id ? 'active' : ''}`}
+                      onClick={() => handleChildSelect(child)}
+                    >
+                      {child.avatar && (
+                        <img src={child.avatar} alt={child.fullName} className="child-avatar-sm" />
+                      )}
+                      <div className="child-info">
+                        <span className="child-name">{child.fullName}</span>
+                        <span className="child-email">{child.email}</span>
+                      </div>
+                    </button>
+                    <button
+                      className="remove-btn"
+                      onClick={() => handleRemoveChild(child._id)}
+                      title="Remove student"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -198,6 +289,65 @@ const StudentReport = () => {
             )}
           </div>
         </div>
+
+        {/* Link Student Modal */}
+        {showLinkModal && (
+          <div className="modal-overlay" onClick={() => setShowLinkModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Link Student</h3>
+                <button className="modal-close" onClick={() => setShowLinkModal(false)}>×</button>
+              </div>
+
+              {linkError && <div className="error-message">{linkError}</div>}
+
+              <div className="modal-body">
+                <input
+                  type="email"
+                  placeholder="Search by student email..."
+                  value={linkEmail}
+                  onChange={(e) => handleSearchStudents(e.target.value)}
+                  className="search-input"
+                />
+
+                {linkLoading && <div className="searching">Searching...</div>}
+
+                {searchResults.length > 0 && (
+                  <div className="search-results">
+                    {searchResults.map(student => (
+                      <div key={student._id} className="search-result-item">
+                        <div className="result-info">
+                          {student.avatar && (
+                            <img src={student.avatar} alt={student.fullName} className="result-avatar" />
+                          )}
+                          <div>
+                            <h5>{student.fullName}</h5>
+                            <p>{student.email}</p>
+                          </div>
+                        </div>
+                        {student.isLinked ? (
+                          <span className="linked-badge">Already Linked</span>
+                        ) : (
+                          <button
+                            className="link-action-btn"
+                            onClick={() => handleLinkStudent(student._id)}
+                            disabled={linkLoading}
+                          >
+                            Link
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {linkEmail.length > 0 && searchResults.length === 0 && !linkLoading && (
+                  <p className="no-results">No students found</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

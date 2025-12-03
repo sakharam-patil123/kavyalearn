@@ -6,12 +6,10 @@ import {
   Award,
   Star,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/leaderboard.css";
 import AppLayout from "../components/AppLayout";
-
-// we'll populate leaderboard from API
 
 const achievements = [
   { icon: Crown, label: "Top Performer", color: "#fbbf24" },
@@ -32,6 +30,23 @@ export default function Leaderboard() {
   const [achievementsHover, setAchievementsHover] = useState(false);
   const [challengeHover, setChallengeHover] = useState(false);
   const [motivationHover, setMotivationHover] = useState(false);
+  const [topPerformers] = useState([
+    { rank: 1, fullName: "Carol Davis", completedCourses: 10 },
+    { rank: 2, fullName: "Alice Johnson", completedCourses: 8 },
+    { rank: 3, fullName: "Bob Smith", completedCourses: 6 },
+  ]);
+
+  const [fullRankings] = useState([
+    { rank: 1, _id: '1', fullName: 'Carol Davis', completedCourses: 10, completionPercentage: 100, avgQuizScore: 92 },
+    { rank: 2, _id: '2', fullName: 'Alice Johnson', completedCourses: 8, completionPercentage: 100, avgQuizScore: 88 },
+    { rank: 3, _id: '3', fullName: 'Bob Smith', completedCourses: 6, completionPercentage: 100, avgQuizScore: 85 },
+    { rank: 4, _id: '4', fullName: 'David Wilson', completedCourses: 4, completionPercentage: 100, avgQuizScore: 78 },
+    { rank: 5, _id: '5', fullName: 'Eva Martinez', completedCourses: 0, completionPercentage: 0, avgQuizScore: 0 },
+  ]);
+
+  const [userRanking] = useState({ rank: 5, completedCourses: 0, totalEnrollments: 1, completionPercentage: 0, avgQuizScore: 0 });
+  const loading = false;
+  const error = null;
 
   const interactiveStyle = {
     transition: "all 0.3s ease-in-out",
@@ -50,51 +65,51 @@ export default function Leaderboard() {
 
   const navigate = useNavigate();
 
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [myRank, setMyRank] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Get initials from full name
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-  useEffect(() => {
-    async function loadLeaderboard() {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/achievements/leaderboard', {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: localStorage.getItem('token')
-              ? `Bearer ${localStorage.getItem('token')}`
-              : undefined,
-          },
-        });
-
-        if (!res.ok) {
-          console.warn('Failed to fetch leaderboard');
-          setLoading(false);
-          return;
-        }
-
-        const data = await res.json();
-        // API returns { leaderboard, myRank }
-        setLeaderboard(Array.isArray(data.leaderboard) ? data.leaderboard : []);
-        setMyRank(data.myRank || null);
-      } catch (err) {
-        console.error('Error loading leaderboard', err);
-      }
-      setLoading(false);
+  // Get colors for rank badges
+  const getRankColor = (rank) => {
+    switch (rank) {
+      case 1:
+        return "#1e3a5f";
+      case 2:
+        return "#3b6ea5";
+      case 3:
+        return "#4ca89a";
+      default:
+        return "#6b7280";
     }
-    loadLeaderboard();
-  }, []);
+  };
 
   const renderLeaderboardContent = () => {
-    const streakAchievement = achievements.find(
-      (a) => a.label === "Consistent"
-    ) || {
-      icon: Award,
-      color: "#fbbf24",
-    };
+    if (loading) {
+      return (
+        <div className="content-grid">
+          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px" }}>
+            <p style={{ fontSize: "18px", color: "#666" }}>Loading leaderboard data...</p>
+          </div>
+        </div>
+      );
+    }
 
-    const StreakIcon = streakAchievement.icon;
-    const streakColor = streakAchievement.color;
+    if (error) {
+      return (
+        <div className="content-grid">
+          <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px" }}>
+            <p style={{ fontSize: "18px", color: "#dc2626" }}>{error}</p>
+          </div>
+        </div>
+      );
+    }
 
     if (activeTab === "Overall") {
       return (
@@ -113,30 +128,17 @@ export default function Leaderboard() {
               <h2 className="section-title">Top Performers</h2>
 
               <div className="podium">
-                {leaderboard.slice(0, 3).map((item, idx) => {
-                  const performer = {
-                    rank: idx + 1,
-                    name: item._id?.name || 'Unknown',
-                    points: item.totalPoints || 0,
-                    initials: (item._id?.name || 'U')
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase(),
-                    color: ['#1e3a5f', '#3b6ea5', '#4ca89a'][idx] || '#3b6ea5'
-                  };
-
-                  return (
+                {topPerformers.length > 0 ? (
+                  topPerformers.map((performer) => (
                     <div
                       key={performer.rank}
                       className={`podium-item podium-rank-${performer.rank}`}
-                      onClick={() => navigate('/profile', { state: { user: item._id } })}
-                      style={{ cursor: 'pointer' }}
+                      onClick={() => navigate("/profile", { state: { user: performer } })}
+                      style={{ cursor: "pointer" }}
                     >
                       <div
                         className="podium-avatar"
-                        style={{ backgroundColor: performer.color }}
+                        style={{ backgroundColor: getRankColor(performer.rank) }}
                       >
                         {performer.rank === 1 && (
                           <Crown
@@ -158,18 +160,22 @@ export default function Leaderboard() {
                         </span>
                       </div>
 
-                      <div className="podium-name">{performer.name}</div>
-                      <div className="podium-points">{performer.points} pts</div>
+                      <div className="podium-name">{performer.fullName}</div>
+                      <div className="podium-points">{performer.completedCourses} courses</div>
 
                       <div
                         className="podium-bar"
-                        style={{ backgroundColor: performer.color }}
+                        style={{ backgroundColor: getRankColor(performer.rank) }}
                       ></div>
                     </div>
-                  );
-                })}
+                  ))
+                ) : (
+                  <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "20px" }}>
+                    <p style={{ color: "#666" }}>No performers yet</p>
+                  </div>
+                )}
               </div>
-            </div>
+              </div>
 
             {/* --- Full Rankings --- */}
             <div
@@ -184,73 +190,46 @@ export default function Leaderboard() {
               <h2 className="section-title">Full Rankings</h2>
 
               <div className="rankings-list">
-                {leaderboard.map((item, index) => {
-                  const name = item._id?.name || 'Unknown';
-                  const initials = name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase();
-
-                  const userRow = {
-                    rank: index + 1,
-                    name,
-                    initials,
-                    points: item.totalPoints || 0,
-                    courses: 0,
-                    avg: 0,
-                    streak: 0,
-                    trend: 'up'
-                  };
-
-                  return (
+                {fullRankings.length > 0 ? (
+                  fullRankings.map((user) => (
                     <div
-                      key={index}
+                      key={user._id}
                       className={`ranking-item ${
-                        selectedRank === userRow.rank ? "ranking-selected" : ""
+                        selectedRank === user.rank ? "ranking-selected" : ""
                       }`}
                       style={
-                        selectedRank === userRow.rank
+                        selectedRank === user.rank
                           ? { border: "1px solid black" }
                           : {}
                       }
                       onClick={() => {
-                        setSelectedRank(userRow.rank);
-                        navigate('/profile', { state: { user: item._id } });
+                        setSelectedRank(user.rank);
+                        navigate("/profile", { state: { user } });
                       }}
                     >
-                      <div className="ranking-rank">{userRow.rank}</div>
+                      <div className="ranking-rank">{user.rank}</div>
 
                       <div
                         className="ranking-avatar"
                         style={{
-                          backgroundColor:
-                            userRow.rank === 1
-                              ? "#1e3a5f"
-                              : userRow.rank === 2
-                              ? "#3b6ea5"
-                              : userRow.rank === 3
-                              ? "#4ca89a"
-                              : "#3b6ea5",
+                          backgroundColor: getRankColor(user.rank),
                         }}
                       >
-                        {userRow.initials}
+                        {getInitials(user.fullName)}
                       </div>
 
                       <div className="ranking-info">
-                        <div className="ranking-name">{userRow.name}</div>
+                        <div className="ranking-name">{user.fullName}</div>
 
                         <div className="ranking-stats">
-                          {userRow.courses} courses · {userRow.avg}% avg ·{' '}
-                          <StreakIcon size={14} style={{ color: streakColor }} />{' '}
-                          {userRow.streak} day streak
+                          {user.completedCourses} courses · {user.completionPercentage}%
+                          completion · {user.avgQuizScore}% avg score
                         </div>
                       </div>
 
-                      <div className="ranking-points">{userRow.points}</div>
+                      <div className="ranking-points">{user.completedCourses}</div>
 
-                      {userRow.trend === "up" ? (
+                      {user.completedCourses > 0 ? (
                         <TrendingUp
                           className="ranking-trend trend-up"
                           size={20}
@@ -262,8 +241,12 @@ export default function Leaderboard() {
                         />
                       )}
                     </div>
-                  );
-                })}
+                  ))
+                ) : (
+                  <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+                    No ranking data available
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -286,24 +269,26 @@ export default function Leaderboard() {
               </div>
 
               <div className="your-ranking-badge">
-                <div className="ranking-circle">{myRank ? myRank.rank : '-'}</div>
+                <div className="ranking-circle">
+                  {userRanking?.rank || "-"}
+                </div>
               </div>
 
-              <div className="your-ranking-points">{myRank ? myRank.totalPoints : '-'}</div>
-              <div className="your-ranking-label">Total Points</div>
+              <div className="your-ranking-points">{userRanking?.completedCourses || 0}</div>
+              <div className="your-ranking-label">Courses Completed</div>
 
               <div className="your-ranking-stats">
                 <div className="stat-row">
-                  <span>Courses Completed</span>
-                  <span className="stat-value">{myRank?.coursesCompleted ?? '-'}</span>
+                  <span>Total Enrolled</span>
+                  <span className="stat-value">{userRanking?.totalEnrollments || 0}</span>
                 </div>
                 <div className="stat-row">
-                  <span>Average Score</span>
-                  <span className="stat-value">{myRank?.avgScore ? myRank.avgScore + '%' : '-'}</span>
+                  <span>Completion %</span>
+                  <span className="stat-value">{userRanking?.completionPercentage || 0}%</span>
                 </div>
                 <div className="stat-row">
-                  <span>Current Streak</span>
-                  <span className="stat-value">{myRank?.streak ? myRank.streak + ' days' : '-'}</span>
+                  <span>Avg Quiz Score</span>
+                  <span className="stat-value">{userRanking?.avgQuizScore || 0}%</span>
                 </div>
               </div>
             </div>

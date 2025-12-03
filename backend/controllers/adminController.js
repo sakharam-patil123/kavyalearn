@@ -75,8 +75,22 @@ exports.deleteUser = async (req, res) => {
 // --- Courses (Admin) ---
 exports.createCourse = async (req, res) => {
   try {
-    const payload = req.body;
+    const payload = { ...req.body };
+    // Ensure required fields exist for the Course model
+    // If admin didn't specify an instructor, set to admin (allows quick creation from admin UI)
+    payload.instructor = payload.instructor || req.user._id;
+    // Normalize price and duration
+    if (typeof payload.price === 'undefined') payload.price = 0;
+    if (!payload.duration) {
+      if (payload.durationHours) {
+        payload.duration = `${payload.durationHours} hours`;
+      } else {
+        payload.duration = '0 hours';
+      }
+    }
+    // createdBy meta
     payload.createdBy = req.user._id;
+
     const course = await Course.create(payload);
     await ActivityLog.create({ action: 'create_course', performedBy: req.user._id, targetType: 'Course', targetId: course._id, details: payload });
     res.status(201).json(course);

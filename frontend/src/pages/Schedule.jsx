@@ -210,44 +210,57 @@ function AddEventModal({ isOpen, onClose, onAdd }) {
 function Schedule() {
   const initialClasses = [
     {
-      title: "Advanced Mathematics",
-      instructor: "Dr. Sarah Smith",
-      date: "March 16, 2025",
-      time: "1:00 PM - 2:30 PM",
-      location: "Virtual Room 1",
-      students: "45 students",
+      title: "Artificial Intelligence Basics",
+      instructor: "Dr. Raj Patel",
+      date: "January 15, 2026",
+      time: "10:00 AM - 12:00 PM",
+      location: "Virtual Room A",
+      students: "60 students",
       type: "Live Class",
     },
     {
-      title: "Physics Laboratory",
-      instructor: "Prof. Michael Johnson",
-      date: "March 17, 2025",
-      time: "10:00 AM - 11:30 AM",
-      location: "Virtual Lab 3",
-      students: "30 students",
+      title: "Machine Learning Advanced",
+      instructor: "Prof. Emily Chen",
+      date: "February 20, 2026",
+      time: "2:00 PM - 4:00 PM",
+      location: "Virtual Room B",
+      students: "50 students",
+      type: "Workshop",
+    },
+    {
+      title: "Cloud Computing Essentials",
+      instructor: "John Mitchell",
+      date: "March 10, 2026",
+      time: "11:00 AM - 1:00 PM",
+      location: "Virtual Lab 1",
+      students: "45 students",
       type: "Lab Session",
     },
     {
-      title: "Chemistry Fundamentals",
-      instructor: "Dr. Emily Williams",
-      date: "March 18, 2025",
-      time: "2:00 PM - 3:30 PM",
-      location: "Virtual Room 2",
-      students: "52 students",
+      title: "MongoDB Database Design",
+      instructor: "Sarah Khan",
+      date: "April 25, 2026",
+      time: "3:30 PM - 5:30 PM",
+      location: "Virtual Room C",
+      students: "55 students",
       type: "Live Class",
-    },
-    {
-      title: "Web Development Workshop",
-      instructor: "John Davis",
-      date: "March 19, 2025",
-      time: "3:00 PM - 5:00 PM",
-      location: "Virtual Workshop Hall",
-      students: "38 students",
-      type: "Workshop",
     },
   ];
  
   const [classes, setClasses] = useState(initialClasses);
+  // Normalize initial classes with ISO date for easy comparison
+  useEffect(() => {
+    setClasses((prev) =>
+      prev.map((c) => {
+        try {
+          const iso = new Date(c.date).toISOString().slice(0, 10);
+          return { ...c, dateISO: iso };
+        } catch (e) {
+          return { ...c, dateISO: null };
+        }
+      })
+    );
+  }, []);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSmallChatOpen, setIsSmallChatOpen] = useState(false);
  
@@ -262,6 +275,7 @@ function Schedule() {
             title: e.title,
             instructor: e.instructor && (e.instructor.fullName || e.instructor.email) || "TBD",
             date: e.date ? new Date(e.date).toLocaleDateString() : 'TBD',
+            dateISO: e.date ? new Date(e.date).toISOString().slice(0, 10) : null,
             time: `${e.startTime || 'TBD'} - ${e.endTime || 'TBD'}`,
             location: e.location || 'Online',
             students: (e.enrolledStudents || []).length + ' students',
@@ -274,6 +288,11 @@ function Schedule() {
       }
     })();
   }, []);
+
+  // Selected date (ISO yyyy-mm-dd) for clickable calendar
+  const [selectedDateISO, setSelectedDateISO] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  );
  
   const todaySchedule = [
     {
@@ -303,6 +322,11 @@ function Schedule() {
   ];
  
   const [currentDate, setCurrentDate] = useState(() => new Date());
+
+  // Weekly summary values (set to zero as requested)
+  const classesAttendedThisWeek = 0;
+  const totalClassesThisWeek = 15; // keep the total reference
+  const studyHoursThisWeek = 0;
  
   const weekStart = useMemo(() => {
     const date = new Date(currentDate);
@@ -440,20 +464,54 @@ function Schedule() {
               </div>
  
               <div className="row g-2">
-                {weekDays.map((day) => {
-                  const isActive =
-                    day.toDateString() === currentDate.toDateString();
-                  return (
-                    <div key={day.toISOString()} className="col">
-                      <div
-                        className={`calendar-day ${isActive ? "active" : ""}`}
-                      >
-                        {day.getDate()}
-                      </div>
-                    </div>
-                  );
-                })}
+                            {weekDays.map((day) => {
+                              const iso = day.toISOString().slice(0, 10);
+                              const isActive = iso === selectedDateISO;
+                              return (
+                                <div key={day.toISOString()} className="col">
+                                  <div
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') setSelectedDateISO(iso);
+                                    }}
+                                    onClick={() => setSelectedDateISO(iso)}
+                                    className={`calendar-day ${isActive ? "active" : ""}`}
+                                  >
+                                    {day.getDate()}
+                                  </div>
+                                </div>
+                              );
+                            })}
               </div>
+                          {/* Events for selected date */}
+                          <div style={{ marginTop: 16 }}>
+                            <h6 style={{ marginBottom: 8, fontWeight: 600 }}>
+                              Events on {new Date(selectedDateISO).toLocaleDateString()}
+                            </h6>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              {classes.filter(c => c.dateISO === selectedDateISO).length > 0 ? (
+                                classes
+                                  .filter((c) => c.dateISO === selectedDateISO)
+                                  .map((c, i) => (
+                                    <div key={i} className="class-card" style={{ padding: 12 }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                          <div style={{ fontWeight: 600 }}>{c.title}</div>
+                                          <div style={{ color: '#64748b', fontSize: 13 }}>{c.instructor}</div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                          <div style={{ fontSize: 13, color: '#64748b' }}>{c.time || c.date}</div>
+                                          <div style={{ fontSize: 12 }}>{c.location}</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))
+                              ) : (
+                                <div style={{ color: '#666' }}>No events scheduled for this date.</div>
+                              )}
+                            </div>
+                          </div>
             </div>
           </div>
         </div>
@@ -496,14 +554,6 @@ function Schedule() {
                   </div>
  
                   <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-color btn-sm d-flex align-items-center gap-1"
-                      onClick={() => alert(`Join ${classItem.title}`)}
-                    >
-                      <Video size={16} />
-                      Join
-                    </button>
- 
                     <button
                       className="btn btn-reminder btn-sm d-flex align-items-center gap-1"
                       onClick={() =>
@@ -593,9 +643,9 @@ function Schedule() {
                   marginBottom: "16px",
                 }}
               >
-                Today's Schedule
+                Today's Schedule — {new Date().toLocaleDateString()}
               </h5>
- 
+
               {todaySchedule.map((event, idx) => (
                 <div
                   key={idx}
@@ -612,7 +662,7 @@ function Schedule() {
                   >
                     {event.time}
                   </div>
- 
+
                   <div
                     className="today-event flex-grow-1"
                     style={{
@@ -625,7 +675,7 @@ function Schedule() {
                 </div>
               ))}
             </div>
- 
+
             {/* Weekly Summary */}
             <div className="schedule-card p-4 mb-4">
               <h5
@@ -640,17 +690,17 @@ function Schedule() {
  
               <div className="d-flex justify-content-between mb-3">
                 <span style={{ color: "#64748b" }}>Classes Attended</span>
-                <span style={{ fontWeight: "600" }}>12 / 15</span>
+                <span style={{ fontWeight: "600" }}>{classesAttendedThisWeek} / {totalClassesThisWeek}</span>
               </div>
- 
+
               <div className="d-flex justify-content-between mb-3">
                 <span style={{ color: "#64748b" }}>Study Hours</span>
-                <span style={{ fontWeight: "600" }}>18.5h</span>
+                <span style={{ fontWeight: "600" }}>{studyHoursThisWeek}h</span>
               </div>
- 
+
               <div className="d-flex justify-content-between">
                 <span style={{ color: "#64748b" }}>Upcoming Classes</span>
-                <span style={{ fontWeight: "600" }}>4</span>
+                <span style={{ fontWeight: "600" }}>{classes.length}</span>
               </div>
             </div>
  

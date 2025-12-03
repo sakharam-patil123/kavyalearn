@@ -133,7 +133,7 @@ exports.addChildToParent = async (req, res) => {
 
     const child = await User.findOne({ email: childEmail });
     if (!child) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({ message: 'Student not found with this email' });
     }
 
     if (child.role !== 'student') {
@@ -141,14 +141,98 @@ exports.addChildToParent = async (req, res) => {
     }
 
     const parent = await User.findById(parentId);
-    if (!parent.children.includes(child._id)) {
-      parent.children.push(child._id);
-      await parent.save();
+    if (parent.children.some(id => id.toString() === child._id.toString())) {
+      return res.status(400).json({ message: 'This student is already linked' });
     }
 
-    res.json({ message: 'Child added successfully', child });
+    parent.children.push(child._id);
+    await parent.save();
+
+    res.json({ 
+      message: 'Child added successfully',
+      child: {
+        _id: child._id,
+        fullName: child.fullName,
+        email: child.email,
+        avatar: child.avatar,
+        role: child.role
+      }
+    });
   } catch (err) {
     console.error('Error adding child:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Search for students by email (for parent to link)
+exports.searchStudents = async (req, res) => {
+  try {
+    const { email } = req.query;
+    const parentId = req.user._id;
+
+    console.log('Search request - email:', email, 'parentId:', parentId);
+
+    if (req.user.role !== 'parent') {
+      return res.status(403).json({ message: 'Only parents can search students' });
+    }
+
+    if (!email || email.trim().length === 0) {
+      return res.json({ students: [] });
+    }
+
+    const searchEmail = email.trim().toLowerCase();
+    
+    // Try exact match first, then partial match
+    let students = await User.find({
+      role: 'student',
+      email: { $regex: searchEmail, $options: 'i' }
+    }).select('_id fullName email avatar role');
+
+    console.log('Students found:', students.length, students.map(s => s.email));
+
+    // Get current parent's children IDs
+    const parent = await User.findById(parentId).select('children');
+    if (!parent) {
+      return res.status(404).json({ message: 'Parent not found' });
+    }
+
+    const linkedChildIds = parent.children ? parent.children.map(id => id.toString()) : [];
+
+    // Mark already linked students
+    const result = students.map(student => ({
+      _id: student._id,
+      fullName: student.fullName,
+      email: student.email,
+      avatar: student.avatar,
+      role: student.role,
+      isLinked: linkedChildIds.includes(student._id.toString())
+    }));
+
+    console.log('Result sent:', result);
+    res.json({ students: result });
+  } catch (err) {
+    console.error('Error searching students:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Remove child from parent
+exports.removeChildFromParent = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const parentId = req.user._id;
+
+    if (req.user.role !== 'parent') {
+      return res.status(403).json({ message: 'Only parents can remove children' });
+    }
+
+    const parent = await User.findById(parentId);
+    parent.children = parent.children.filter(id => id.toString() !== childId);
+    await parent.save();
+
+    res.json({ message: 'Child removed successfully' });
+  } catch (err) {
+    console.error('Error removing child:', err);
     res.status(500).json({ message: err.message });
   }
 };

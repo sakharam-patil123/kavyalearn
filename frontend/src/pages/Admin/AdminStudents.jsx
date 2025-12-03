@@ -2,13 +2,16 @@ import React, { useEffect, useState } from "react";
 import axiosClient from "../../api/axiosClient";
 import AppLayout from "../../components/AppLayout";
 import CreateUserModal from "../../components/CreateUserModal";
+import EditStudentModal from "../../components/EditStudentModal";
 
 
 
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const loadStudents = async () => {
     try {
@@ -21,6 +24,23 @@ const AdminStudents = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (studentId) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      try {
+        await axiosClient.delete(`/api/admin/users/${studentId}`);
+        alert('Student deleted successfully');
+        loadStudents();
+      } catch (err) {
+        alert('Error: ' + (err.response?.data?.message || err.message));
+      }
+    }
+  };
+
+  const handleEdit = (student) => {
+    setSelectedStudent(student);
+    setEditModalOpen(true);
   };
 
   useEffect(() => {
@@ -41,15 +61,22 @@ const AdminStudents = () => {
         }}
       >
         <h2>Student Management</h2>
-        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
+        <button className="btn btn-primary" onClick={() => setCreateModalOpen(true)}>
           Add Student
         </button>
       </div>
 
       <CreateUserModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
         onSuccess={loadStudents}
+      />
+      
+      <EditStudentModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={loadStudents}
+        student={selectedStudent}
       />
 
       {/* STUDENT TABLE */}
@@ -61,6 +88,7 @@ const AdminStudents = () => {
             <th>Courses</th>
             <th>Performance</th>
             <th>Achievements</th>
+            <th style={{ width: '120px' }}>Actions</th>
           </tr>
         </thead>
 
@@ -153,6 +181,23 @@ const AdminStudents = () => {
                 ) : (
                   <span className="text-muted">No achievements</span>
                 )}
+              </td>
+
+              {/* ACTIONS */}
+              <td style={{ textAlign: 'center' }}>
+                <button 
+                  className="btn btn-sm btn-warning" 
+                  onClick={() => handleEdit(s)}
+                  style={{ marginRight: '5px' }}
+                >
+                  ✏️ Edit
+                </button>
+                <button 
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDelete(s._id)}
+                >
+                  🗑️ Delete
+                </button>
               </td>
             </tr>
           ))}
