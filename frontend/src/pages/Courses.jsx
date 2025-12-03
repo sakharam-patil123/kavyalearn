@@ -48,55 +48,61 @@ const useLocalStorage = (key, initialValue) => {
 // Initial hardcoded data (will be combined with localStorage data)
 const initialGettingStarted = [
   {
-    title: "Introduction to the Course",
+    title: "Introduction to Ethical Hacking",
     duration: "10 min",
     status: "Review",
     iconClass: "bi-check2-circle",
     iconBgClass: "lesson-icon",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/w_oxcjPOWos",
   },
   {
-    title: "Setting up Your Environment",
+    title: "Basics of Ethical Hacking",
     duration: "15 min",
     status: "Review",
     iconClass: "bi-check2-circle",
     iconBgClass: "lesson-icon",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/-9iIOWBc6qw",
   },
   {
-    title: "Course Overview",
+    title: "Ethical Hacking Phases",
     duration: "20 min",
     status: "Start",
     iconClass: "bi-play-circle",
     iconBgClass: "lesson-icon",
     actionClass: "lesson-action",
-    videoLink: "https://www.youtube.com/embed/tMHrpmJH5I8",
+    videoLink: "https://www.youtube.com/embed/xI-_dwTO608",
   },
 ];
 
 const initialCoreConcepts = [
   {
-    title: "Understanding the Basics",
+    title: "Hacking and Assessment",
     duration: "30 min",
     status: "Start",
     iconClass: "bi-play-fill",
     iconBgClass: "lesson-icon",
     actionClass: "lesson-action1",
-    videoLink: "https://www.youtube.com/embed/UCdxT4d8k5c",
+    videoLink: "https://www.youtube.com/embed/w_oxcjPOWos",
   },
   {
-    title: "Advanced Techniques",
+    title: "Hacking and Enumeration Server",
     duration: "45 min",
-    status: "Locked",
+    status: "Start",
     iconClass: "bi-lock-fill",
     iconBgClass: "muted-circle",
-    actionClass: "muted small",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/-9iIOWBc6qw"
   },
   {
-    title: "Best Practices",
+    title: "Anonymous Browsing and Steganography",
     duration: "35 min",
-    status: "Locked",
+    status: "Start",
     iconClass: "bi-lock-fill",
     iconBgClass: "muted-circle",
-    actionClass: "muted small",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/w_oxcjPOWos"
   },
 ];
 
@@ -104,26 +110,29 @@ const initialPracticalApplications = [
   {
     title: "Project Setup",
     duration: "25 min",
-    status: "Locked",
+    status: "Start",
     iconClass: "bi-lock-fill",
     iconBgClass: "muted-circle",
-    actionClass: "muted small",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/w_oxcjPOWos"
   },
   {
     title: "Building Your First Project",
     duration: "1h 30 min",
-    status: "Locked",
+    status: "Start",
     iconClass: "bi-lock-fill",
     iconBgClass: "muted-circle",
-    actionClass: "muted small",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/-9iIOWBc6qw"
   },
   {
     title: "Testing and Deployment",
     duration: "40 min",
-    status: "Locked",
+    status: "Start",
     iconClass: "bi-lock-fill",
     iconBgClass: "muted-circle",
-    actionClass: "muted small",
+    actionClass: "lesson-action",
+    videoLink: "https://www.youtube.com/embed/w_oxcjPOWos"
   },
 ];
 
@@ -638,8 +647,13 @@ function ReviewForm({ addReview, toggleForm }) {
   );
 }
 
-function ResourceList({ resources }) {
+function ResourceList({ resources, enrolled = false }) {
   const downloadFile = (resource) => {
+    if (!enrolled) {
+      alert("Please enroll in this course to download resources.");
+      return;
+    }
+
     // If resource already has a stored dataURL (uploaded by user), download directly
     if (resource.dataURL) {
       const link = document.createElement("a");
@@ -725,6 +739,12 @@ function ResourceList({ resources }) {
   return (
     <div className="resources-panel p-4 rounded-3">
       <h5 className="resource-header-title">Course Resources</h5>
+      {!enrolled && (
+        <div className="alert alert-warning mb-3">
+          <i className="bi bi-info-circle me-2"></i>
+          Please enroll in this course to download resources.
+        </div>
+      )}
       <div className="list-group list-group-flush resource-list-group">
         {resources.map((resource, index) => (
           <div
@@ -742,16 +762,21 @@ function ResourceList({ resources }) {
                 )}
               </div>
             </div>
-            <a
-              href="#"
-              className="resource-download-link"
-              onClick={(e) => {
-                e.preventDefault();
-                downloadFile(resource);
+            <button
+              type="button"
+              className="resource-download-link btn btn-sm"
+              disabled={!enrolled}
+              title={!enrolled ? "Enroll to download this resource" : ""}
+              onClick={() => {
+                if (enrolled) {
+                  downloadFile(resource);
+                } else {
+                  alert("Please enroll in this course to download resources.");
+                }
               }}
             >
               Download
-            </a>
+            </button>
           </div>
         ))}
       </div>
@@ -844,45 +869,51 @@ const defaultQuizQuestions = [
   {
     id: 1,
     question:
-      "Which of the following is used to manage state in functional components in React?",
-    options: ["useReducer", "useEffect", "useState", "useContext"],
-    answerIndex: 2, // useState
+      "What is the primary purpose of ethical hacking?",
+    options: [
+      "To steal sensitive data",
+      "To find and fix security vulnerabilities",
+      "To damage computer systems",
+      "To perform illegal activities"
+    ],
+    answerIndex: 1, // find and fix vulnerabilities
   },
   {
     id: 2,
-    question: "Which HTML element is used to define the internal style sheet?",
-    options: ["<script>", "<css>", "<style>", "<link>"],
-    answerIndex: 2, // <style>
+    question: "Which tool is commonly used for network scanning?",
+    options: ["Nmap", "Photoshop", "MySQL", "React"],
+    answerIndex: 0, // Nmap
   },
   {
     id: 3,
-    question: "Which CSS property is used to change the background color?",
-    options: ["color", "bgcolor", "background-color", "bg-color"],
-    answerIndex: 2, // background-color
+    question: "What does SQL Injection target?",
+    options: [
+      "Web server hardware",
+      "Database queries",
+      "Email accounts",
+      "Operating system files"
+    ],
+    answerIndex: 1, // Database queries
   },
   {
     id: 4,
-    question: "What is the primary function of Node.js?",
-    options: [
-      "Frontend framework",
-      "Server-side runtime environment",
-      "Database management system",
-      "Client-side scripting",
-    ],
-    answerIndex: 1, // Server-side runtime environment
+    question: "Which of the following is a type of malware?",
+    options: ["Firewall", "Trojan", "VPN", "HTTP"],
+    answerIndex: 1, // Trojan
   },
   {
     id: 5,
-    question: "What does API stand for?",
+    question: "What does VPN stand for?",
     options: [
-      "Application Programming Interface",
-      "Advanced Protocol Integration",
-      "Automated Process Interaction",
-      "Application Private Interface",
+      "Virtual Private Network",
+      "Verified Protection Node",
+      "Variable Protocol Number",
+      "Virtual Process Navigation"
     ],
-    answerIndex: 0, // Application Programming Interface
+    answerIndex: 0, // Virtual Private Network
   },
 ];
+
 
 // NEW Component: QuizResultModal (For pop-up display)
 function QuizResultModal({ show, score, quizData, onClose }) {
@@ -1235,7 +1266,7 @@ function QuizForm({ addQuiz, toggleForm }) {
 }
 
 // Quiz List (Unchanged)
-function QuizList({ quizzes, startQuiz }) {
+function QuizList({ quizzes, startQuiz, enrolled = false }) {
   return (
     <div className="curriculum-panel rounded-3 overflow-hidden mb-3">
       <div className="curriculum-header d-flex justify-content-between align-items-center p-3">
@@ -1244,6 +1275,12 @@ function QuizList({ quizzes, startQuiz }) {
           <strong>Available Quizzes</strong>
         </div>
       </div>
+      {!enrolled && (
+        <div className="alert alert-warning m-3 mb-0">
+          <i className="bi bi-info-circle me-2"></i>
+          Please enroll in this course to attempt quizzes.
+        </div>
+      )}
       <div className="list-group list-group-flush">
         {quizzes.map((quiz, index) => (
           <div
@@ -1271,16 +1308,21 @@ function QuizList({ quizzes, startQuiz }) {
                 </div>
               </div>
             </div>
-            <a
-              href="#"
+            <button
+              type="button"
               className="lesson-action"
-              onClick={(e) => {
-                e.preventDefault();
-                startQuiz(quiz);
+              disabled={!enrolled}
+              title={!enrolled ? "Enroll to attempt this quiz" : ""}
+              onClick={() => {
+                if (enrolled) {
+                  startQuiz(quiz);
+                } else {
+                  alert("Please enroll in this course to attempt quizzes.");
+                }
               }}
             >
               {quiz.status}
-            </a>
+            </button>
           </div>
         ))}
       </div>
@@ -1296,8 +1338,8 @@ function QuizList({ quizzes, startQuiz }) {
 export default function Courses() {
   // --- UI STATES ---
   const navigate = useNavigate();
-  const [tab, setTab] = useState("curriculum");
-  const [showCurriculumForm, setShowCurriculumForm] = useState(false);
+  // `tab` holds the currently expanded section. null means all collapsed.
+  const [tab, setTab] = useState(null);
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showResourceForm, setShowResourceForm] = useState(false);
@@ -1318,6 +1360,23 @@ export default function Courses() {
   const [gettingStarted] = useState(initialGettingStarted);
   const [coreConcepts] = useState(initialCoreConcepts);
   const [practicalApplications] = useState(initialPracticalApplications);
+
+  // Enrollment and watched lessons state
+  // 'enrolled' controls whether the student can access lessons
+  const [enrolled, setEnrolled] = useLocalStorage("enrolled", false);
+  // Keep track of watched lesson titles to compute progress
+  // Initialize with the first two lessons (Review lessons) already watched
+  const [watchedLessons, setWatchedLessons] = useLocalStorage(
+    "watchedLessons",
+    [
+      "Introduction to the Course",
+      "Setting up Your Environment"
+    ]
+  );
+
+  // Active lesson player state (for Practical Applications and new modules)
+  const [activeLessonVideo, setActiveLessonVideo] = useState(null);
+  const [activeLessonTitle, setActiveLessonTitle] = useState("");
 
   // Instructor: Persisting the added instructors
   const [instructor] = useState(initialInstructor);
@@ -1374,6 +1433,12 @@ export default function Courses() {
   };
 
   const handleDownloadCertificate = () => {
+    // Only allow certificate download when progress is 100%
+    if (typeof progressPercent !== 'undefined' && progressPercent < 100) {
+      alert('You must complete 100% of the course to download the certificate.');
+      return;
+    }
+
     const cert = { title: "Full Stack Development", date: "Oct 2024" };
     const profileName = "Deepak Kumar"; // Hardcoded as in Profile.jsx
     const doc = new jsPDF("landscape", "pt", "a4");
@@ -1454,10 +1519,28 @@ export default function Courses() {
     })();
   }, []);
 
+  // Compute course progress based on watched lessons
+  const totalLessons =
+    gettingStarted.length +
+    coreConcepts.length +
+    practicalApplications.length +
+    (newModules ? newModules.reduce((s, m) => s + (m.lessons ? m.lessons.length : 0), 0) : 0);
+
+  const watchedCount = watchedLessons ? watchedLessons.length : 0;
+  const progressPercent = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
 
 
-  // Function to render a curriculum list
-  const renderCurriculumList = (list, onVideoClick) => (
+
+  // Helper: Get all lessons in order across modules (for sequential unlocking)
+  const allLessonsInOrder = [
+    ...gettingStarted,
+    ...coreConcepts,
+    ...practicalApplications,
+    ...(newModules ? newModules.flatMap(m => m.lessons || []) : [])
+  ];
+
+  // Function to render a curriculum list with sequential unlocking
+  const renderCurriculumList = (list, onVideoClick, moduleKey = null) => (
     <div className="list-group list-group-flush">
       {list.map((lesson, index) => (
         <div
@@ -1465,30 +1548,133 @@ export default function Courses() {
           className="list-group-item d-flex align-items-start justify-content-between"
         >
           <div className="d-flex align-items-start gap-3">
-            <div
-              className={`${lesson.iconBgClass} rounded-circle d-flex align-items-center justify-content-center`}
-            >
-              <i className={`bi ${lesson.iconClass}`}></i>
-            </div>
+            {
+              (() => {
+                // Determine dynamic icon based on enrollment, sequential unlock, and watched status
+                let dynamicIconClass = lesson.iconClass;
+                let dynamicBgClass = lesson.iconBgClass;
+                
+                const isWatched = watchedLessons && watchedLessons.includes(lesson.title);
+                const currentLessonIndex = allLessonsInOrder.findIndex(l => l.title === lesson.title);
+                
+                // Check if previous lesson is watched (for sequential unlocking)
+                let isPreviousLessonWatched = true;
+                if (currentLessonIndex > 0) {
+                  const previousLesson = allLessonsInOrder[currentLessonIndex - 1];
+                  isPreviousLessonWatched = watchedLessons && watchedLessons.includes(previousLesson.title);
+                }
+                
+                // Determine if lesson is available (first lesson or previous watched)
+                const isLessonUnlocked = currentLessonIndex === 0 || isPreviousLessonWatched;
+                
+                if (!enrolled) {
+                  // When unenrolled: show lock icon for all lessons
+                  dynamicIconClass = "bi-lock-fill";
+                  dynamicBgClass = "muted-circle";
+                } else if (isWatched) {
+                  // When enrolled and watched: show checkmark (green)
+                  dynamicIconClass = "bi-check2-circle";
+                  dynamicBgClass = "lesson-icon";
+                } else if (isLessonUnlocked) {
+                  // When enrolled and available to start (first lesson or previous watched): show play icon (blue)
+                  dynamicIconClass = "bi-play-circle";
+                  dynamicBgClass = "lesson-icon";
+                } else {
+                  // When enrolled but locked (previous lesson not watched): show lock icon (gray)
+                  dynamicIconClass = "bi-lock-fill";
+                  dynamicBgClass = "muted-circle";
+                }
+                
+                return (
+                  <div
+                    className={`${dynamicBgClass} rounded-circle d-flex align-items-center justify-content-center`}
+                  >
+                    <i className={`bi ${dynamicIconClass}`}></i>
+                  </div>
+                );
+              })()
+            }
             <div>
               <div className="lesson-title">{lesson.title}</div>
               <div className="lesson-duration">{lesson.duration}</div>
             </div>
           </div>
-          <button
-            type="button"
-            className={lesson.actionClass}
-            onClick={(e) => {
-              e.preventDefault();
-              if (lesson.status === "Review") {
-                setTab("reviews");
-              } else if (lesson.videoLink) {
-                onVideoClick(lesson);
+          {
+            // Determine the visible label: Review and Start lessons locked until enrolled, then show as Start
+            (() => {
+              let visibleLabel = lesson.status;
+              
+              // Check if lesson is watched
+              const isWatched = watchedLessons && watchedLessons.includes(lesson.title);
+              
+              // If lesson is watched, always show "Review" button
+              if (isWatched) {
+                visibleLabel = "Review";
+              } else if (lesson.status === "Review" || lesson.status === "Start") {
+                // Review and Start lessons show as Locked (before enrollment) or Start (after enrollment)
+                if (!enrolled) {
+                  // Not enrolled: show as Locked
+                  visibleLabel = "Locked";
+                } else {
+                  // Enrolled: check sequential unlock
+                  // Find this lesson's position in the global order
+                  const currentLessonIndex = allLessonsInOrder.findIndex(l => l.title === lesson.title);
+                  
+                  // Check if previous lesson is watched (for sequential unlocking)
+                  let isPreviousLessonWatched = true;
+                  if (currentLessonIndex > 0) {
+                    const previousLesson = allLessonsInOrder[currentLessonIndex - 1];
+                    isPreviousLessonWatched = watchedLessons && watchedLessons.includes(previousLesson.title);
+                  }
+                  
+                  // Determine if lesson is available based on sequential unlock
+                  const isLessonsUnlockedBySequence = currentLessonIndex === 0 || isPreviousLessonWatched;
+                  
+                  visibleLabel = isLessonsUnlockedBySequence ? "Start" : "Locked";
+                }
               }
-            }}
-          >
-            {lesson.status}
-          </button>
+
+              const isLocked = visibleLabel === "Locked" || lesson.status === "Locked";
+
+              return (
+                <button
+                  type="button"
+                  className={lesson.actionClass}
+                  disabled={isLocked}
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    if (isLocked) {
+                      // Prompt to enroll when locked
+                      if (!enrolled) {
+                        alert("Please enroll in this course to access lessons.");
+                      } else if (!isLessonsUnlockedBySequence) {
+                        alert("Please complete the previous lesson first.");
+                      }
+                      return;
+                    }
+
+                    // When visible as Start, play the lesson
+                    if (onVideoClick) {
+                      onVideoClick(lesson);
+                    } else if (lesson.videoLink) {
+                      setActiveLessonVideo(lesson.videoLink);
+                      setActiveLessonTitle(lesson.title);
+                    }
+
+                    // Mark lesson as watched (persisted). Only add once.
+                    if (lesson.title) {
+                      setWatchedLessons((prev) =>
+                        prev && prev.includes(lesson.title) ? prev : [...(prev || []), lesson.title]
+                      );
+                    }
+                  }}
+                >
+                  {visibleLabel}
+                </button>
+              );
+            })()
+          }
         </div>
       ))}
     </div>
@@ -1500,21 +1686,24 @@ export default function Courses() {
         {/* HERO CARD */}
         <div className="course-hero d-flex flex-column flex-lg-row justify-content-between">
           <div className="hero-left">
-            <div className="hero-tag mb-3">Frontend Development</div>
+            <div className="hero-tag mb-3">Ethical Hacking</div>
             <h2 className="hero-title mb-3">
               {" "}
-              The Complete Full Stack Web Developer Course{" "}
+              Complete Ethical Hacking Course{" "}
             </h2>
             <p className="hero-desc mb-4">
               {" "}
-              A comprehensive course to build modern, professional web
-              applications from scratch. Master both frontend and backend
-              technologies with hands-on projects.{" "}
+              A comprehensive course designed to turn beginners into professional ethical hackers. Learn how to secure systems and perform real-world penetration testing using industry-standard tools and techniques.
+              {" "}
             </p>
             <div className="d-flex gap-2 flex-wrap">
               <button
                 className="btn btn-learn d-flex align-items-center gap-2"
                 onClick={() => {
+                  if (!enrolled) {
+                    alert("Please enroll in this course to continue learning.");
+                    return;
+                  }
                   setHeroVideo("https://www.youtube.com/embed/tMHrpmJH5I8");
                   setHeroTitle("Chemistry Fundamentals");
                   setTab("curriculum");
@@ -1522,9 +1711,38 @@ export default function Courses() {
               >
                 <i className="bi bi-play-fill"></i> Continue Learning
               </button>
+              {/* Enroll / Unenroll Button */}
+              {!enrolled ? (
+                <button
+                  className="btn btn-learn d-flex align-items-center gap-2"
+                  onClick={() => {
+                    setEnrolled(true);
+                    // reset watched lessons to ensure progress starts from zero
+                    setWatchedLessons([]);
+                    alert("You are now enrolled. Start learning!");
+                  }}
+                >
+                  <i className="bi bi-person-plus"></i> Enroll
+                </button>
+              ) : (
+                <button
+                  className="btn btn-outline-danger d-flex align-items-center gap-2"
+                  onClick={() => {
+                    // Allow manual unenroll for testing; clear watched lessons
+                    if (window.confirm("Unenroll from this course?")) {
+                      setEnrolled(false);
+                      setWatchedLessons([]);
+                    }
+                  }}
+                >
+                  <i className="bi bi-person-dash"></i> Unenroll
+                </button>
+              )}
               <button
                 className="btn btn-download d-flex align-items-center gap-2"
                 onClick={handleDownloadCertificate}
+                disabled={progressPercent < 100}
+                title={progressPercent < 100 ? 'Complete the course to download certificate' : 'Download certificate'}
               >
                 <i className="bi bi-download "></i> Download Certificate
               </button>
@@ -1570,17 +1788,17 @@ export default function Courses() {
             <div className="progress-box p-3 rounded-3">
               <div className="small muted">Course Progress</div>
               <div className="d-flex align-items-center mt-2 mb-2">
-                <div className="percent">75%</div>
+                <div className="percent">{progressPercent}%</div>
                 <div className="ms-2 ">Complete</div>
               </div>
               <div className="progress custom" style={{ height: 20 }}>
                 <div
                   className="progress-bar"
                   role="progressbar"
-                  style={{ width: "75%" }}
+                  style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <div className="muted small mt-2">18 of 24 lessons completed</div>
+              <div className="muted small mt-2">{watchedCount} of {totalLessons} lessons completed</div>
             </div>
           </div>
           
@@ -1726,31 +1944,36 @@ export default function Courses() {
         <div className="tabs-row my-3 d-flex gap-2 border-bottom pb-2">
           <button
             className={`tab-pill ${tab === "curriculum" ? "active" : ""}`}
-            onClick={() => setTab("curriculum")}
+            onClick={() => setTab(tab === "curriculum" ? null : "curriculum")}
+            aria-expanded={tab === "curriculum"}
           >
             Curriculum
           </button>
           <button
             className={`tab-pill ${tab === "instructor" ? "active" : ""}`}
-            onClick={() => setTab("instructor")}
+            onClick={() => setTab(tab === "instructor" ? null : "instructor")}
+            aria-expanded={tab === "instructor"}
           >
             Instructor
           </button>
           <button
             className={`tab-pill ${tab === "reviews" ? "active" : ""}`}
-            onClick={() => setTab("reviews")}
+            onClick={() => setTab(tab === "reviews" ? null : "reviews")}
+            aria-expanded={tab === "reviews"}
           >
             Reviews
           </button>
           <button
             className={`tab-pill ${tab === "quizzes" ? "active" : ""}`}
-            onClick={() => setTab("quizzes")}
+            onClick={() => setTab(tab === "quizzes" ? null : "quizzes")}
+            aria-expanded={tab === "quizzes"}
           >
             Quizzes
           </button>
           <button
             className={`tab-pill ${tab === "resources" ? "active" : ""}`}
-            onClick={() => setTab("resources")}
+            onClick={() => setTab(tab === "resources" ? null : "resources")}
+            aria-expanded={tab === "resources"}
           >
             Resources
           </button>
@@ -1761,19 +1984,7 @@ export default function Courses() {
           {/* Curriculum tab */}
           {tab === "curriculum" && (
             <div className="container-fluid p-0 mt-4">
-              <button
-                className="btn btn-sm btn-primary mb-3 d-flex align-items-center gap-1"
-                onClick={() => setShowCurriculumForm(!showCurriculumForm)}
-              >
-                <i className="bi bi-folder-plus"></i> Add New Module
-              </button>
-
-              {showCurriculumForm && (
-                <CurriculumForm
-                  addCurriculumModule={addCurriculumModule}
-                  toggleForm={setShowCurriculumForm}
-                />
-              )}
+              {/* Add New Module UI removed per request */}
 
               {/* Module Panels */}
               <div className="module-panel">
@@ -1898,6 +2109,41 @@ export default function Courses() {
                     setActiveLessonVideo(lesson.videoLink);
                     setActiveLessonTitle(lesson.title);
                   })}
+                {/* Video player shown inside Practical Applications section */}
+                {activeLessonVideo && (
+                  <div
+                    className="card"
+                    style={{ borderRadius: "15px", marginTop: "20px" }}
+                  >
+                    <div
+                      className="card-header bg-white d-flex justify-content-between align-items-center"
+                      style={{ borderColor: "white" }}
+                    >
+                      <h3 className="fw-normal mb-0">Now Playing: {activeLessonTitle}</h3>
+                      <button
+                        className="view-btn"
+                        style={{ fontSize: "14px" }}
+                        onClick={() => {
+                          setActiveLessonVideo(null);
+                          setActiveLessonTitle("");
+                        }}
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div style={{ marginTop: "15px" }}>
+                      <iframe
+                        width="100%"
+                        height="300"
+                        src={activeLessonVideo}
+                        style={{ borderRadius: "10px" }}
+                        allow="autoplay; encrypted-media"
+                        title={activeLessonTitle}
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
                 </div>
 
                 
@@ -1929,20 +2175,6 @@ export default function Courses() {
           {/* Instructor tab */}
           {tab === "instructor" && (
             <div className="container-fluid p-0 mt-4">
-              <button
-                className="btn btn-sm btn-primary mb-3 d-flex align-items-center gap-1"
-                onClick={() => setShowInstructorForm(!showInstructorForm)}
-              >
-                <i className="bi bi-person-plus"></i> Add New Instructor
-              </button>
-
-              {showInstructorForm && (
-                <InstructorForm
-                  addInstructor={addInstructor}
-                  toggleForm={setShowInstructorForm}
-                />
-              )}
-
               {/* Default Instructor Card (Single Card) */}
               <div className="instructor-card p-4 rounded-3 d-flex flex-column flex-md-row gap-4 mb-4">
                 <div className="instructor-avatar rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
@@ -2061,21 +2293,9 @@ export default function Courses() {
                 // 1. Show the Quiz Interface when a quiz is active
                 <QuizInterface quizData={activeQuiz} endQuiz={endQuizHandler} />
               ) : (
-                // 2. Show the Add Quiz button and list of quizzes
+                // 2. Show the quiz list
                 <>
-                  <button
-                    className="btn btn-sm btn-primary mb-3 d-flex align-items-center gap-1"
-                    onClick={() => setShowQuizForm(!showQuizForm)}
-                  >
-                    <i className="bi bi-patch-question"></i>
-                    Add Quiz
-                  </button>
-
-                  {showQuizForm && (
-                    <QuizForm addQuiz={addQuiz} toggleForm={setShowQuizForm} />
-                  )}
-
-                  <QuizList quizzes={quizzes} startQuiz={startQuizHandler} />
+                  <QuizList quizzes={quizzes} startQuiz={startQuizHandler} enrolled={enrolled} />
                 </>
               )}
             </div>
@@ -2084,24 +2304,19 @@ export default function Courses() {
           {/* Resources tab */}
           {tab === "resources" && (
             <div className="container-fluid p-0 mt-4">
-              <button
-                className="btn btn-sm btn-primary mb-3 d-flex align-items-center gap-1"
-                onClick={() => setShowResourceForm(!showResourceForm)}
-              >
-                <i className="bi bi-file-earmark-plus"></i>
-                Add PDF Resource
-              </button>
-
-              {showResourceForm && (
-                <ResourceForm
-                  addResource={addResource}
-                  toggleForm={setShowResourceForm}
-                />
-              )}
-
-              <ResourceList resources={resources} />
+              <ResourceList resources={resources} enrolled={enrolled} />
             </div>
           )}
+        </div>
+
+        {/* View More Button */}
+        <div className="mt-5 mb-5 d-flex justify-content-start">
+          <button
+            className="btn btn-learn d-flex align-items-center gap-2"
+            onClick={() => navigate("/subscription")}
+          >
+            view more courses
+          </button>
         </div>
       </div>
     </AppLayout>

@@ -17,12 +17,11 @@ import Registration from "./pages/Registration";
 import Subscription from "./pages/Subscription";
 import PaymentInterface from "./components/PaymentInterface";
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import AdminStudents from './pages/Admin/AdminStudents';
-import AdminCourses from './pages/Admin/AdminCourses';
-import AdminEnrollments from './pages/Admin/AdminEnrollments';
-import AdminSettings from './pages/Admin/AdminSettings';
-import StudentReport from './pages/StudentReport';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminStudents from './pages/admin/AdminStudents';
+import AdminCourses from './pages/admin/AdminCourses';
+import AdminEnrollments from './pages/admin/AdminEnrollments';
+import AdminSettings from './pages/admin/AdminSettings';
 
 
 function Layout() {
@@ -71,7 +70,6 @@ function Layout() {
 
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/courses" element={<Courses />} />
-          <Route path="/parent/student-report" element={<ProtectedRoute requireParent={true}><StudentReport /></ProtectedRoute>} />
           <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/students" element={<ProtectedRoute requireAdmin={true}><AdminStudents /></ProtectedRoute>} />
           <Route path="/admin/courses" element={<ProtectedRoute requireAdmin={true}><AdminCourses /></ProtectedRoute>} />
