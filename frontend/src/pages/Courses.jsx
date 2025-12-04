@@ -6,6 +6,7 @@ import "../assets/Courses.css";
 import AppLayout from "../components/AppLayout";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import QuizModal from "../components/QuizModal";
 
 // ===================================
 // UTILITY HOOK FOR LOCAL STORAGE
@@ -1346,6 +1347,9 @@ export default function Courses() {
   const [showQuizForm, setShowQuizForm] = useState(false);
   // ✅ NEW: State for active quiz interface
   const [activeQuiz, setActiveQuiz] = useState(null);
+  const [quizModalOpen, setQuizModalOpen] = useState(false);
+  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
   // State for active videos in different sections
   const [heroVideo, setHeroVideo] = useState(null);
   const [heroTitle, setHeroTitle] = useState("");
@@ -1423,7 +1427,10 @@ export default function Courses() {
 
   // Quiz Handlers
   const startQuizHandler = (quiz) => {
-    setActiveQuiz(quiz);
+    // Open the new Quiz Modal (V2) if course is enrolled and has ID
+    // Otherwise fall back to old behavior
+    setSelectedCourseForQuiz("COURSE_ID_HERE"); // Will be set dynamically from context
+    setQuizModalOpen(true);
   };
 
   const endQuizHandler = (finalScore) => {
@@ -2319,6 +2326,18 @@ export default function Courses() {
           </button>
         </div>
       </div>
+
+      {/* Quiz Modal V2 */}
+      {quizModalOpen && selectedCourseForQuiz && (
+        <QuizModal
+          courseId={selectedCourseForQuiz}
+          onClose={() => {
+            setQuizModalOpen(false);
+            setSelectedCourseForQuiz(null);
+          }}
+          enrollment={enrollment}
+        />
+      )}
     </AppLayout>
   );
 }
