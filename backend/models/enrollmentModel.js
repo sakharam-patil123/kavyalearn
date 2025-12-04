@@ -10,7 +10,8 @@ const enrollmentSchema = new mongoose.Schema({
   lastAccessed: { type: Date },
   grade: { type: String },
   feedback: { type: String },
-  coursePerformance: { type: Number, default: 0 }, // 0-100% based on lessons completion
+  // Quiz tracking
+  coursePerformance: { type: Number, default: 0 }, // 0-100% based on lesson completion
   quizMarks: { type: Number, default: 0 },
   quizPercentage: { type: Number, default: 0 },
   quizTaken: { type: Boolean, default: false },

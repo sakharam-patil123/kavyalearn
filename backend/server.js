@@ -29,11 +29,11 @@ const achievementRoutes = require('./routes/achievementRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const quizRoutes = require('./routes/quizRoutes');
-const quizRoutesV2 = require('./routes/quizRoutesV2');
 const paymentRoutes = require('./routes/paymentRoutes');
 const aiTutorRoutes = require('./routes/aiTutorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const featureFlagRoutes = require('./routes/featureFlagRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -44,11 +44,12 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/quiz', quizRoutes);
-app.use('/api/quizzes', quizRoutesV2);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/ai', aiTutorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/flags', featureFlagRoutes);
+
+app.use('/api/reports', reportRoutes);
 
 // Welcome route
 app.get("/", (req, res) => {

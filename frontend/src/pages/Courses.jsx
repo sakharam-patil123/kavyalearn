@@ -1345,11 +1345,11 @@ export default function Courses() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showResourceForm, setShowResourceForm] = useState(false);
   const [showQuizForm, setShowQuizForm] = useState(false);
+  // ✅ Quiz Modal States
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState(null);
   // ✅ NEW: State for active quiz interface
   const [activeQuiz, setActiveQuiz] = useState(null);
-  const [quizModalOpen, setQuizModalOpen] = useState(false);
-  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState(null);
-  const [enrollment, setEnrollment] = useState(null);
   // State for active videos in different sections
   const [heroVideo, setHeroVideo] = useState(null);
   const [heroTitle, setHeroTitle] = useState("");
@@ -1427,10 +1427,9 @@ export default function Courses() {
 
   // Quiz Handlers
   const startQuizHandler = (quiz) => {
-    // Open the new Quiz Modal (V2) if course is enrolled and has ID
-    // Otherwise fall back to old behavior
-    setSelectedCourseForQuiz("COURSE_ID_HERE"); // Will be set dynamically from context
-    setQuizModalOpen(true);
+    // Open the new QuizModal instead of the old QuizInterface
+    setSelectedCourseForQuiz(quiz.courseId || quiz.id);
+    setShowQuizModal(true);
   };
 
   const endQuizHandler = (finalScore) => {
@@ -2325,19 +2324,24 @@ export default function Courses() {
             view more courses
           </button>
         </div>
-      </div>
 
-      {/* Quiz Modal V2 */}
-      {quizModalOpen && selectedCourseForQuiz && (
-        <QuizModal
-          courseId={selectedCourseForQuiz}
-          onClose={() => {
-            setQuizModalOpen(false);
-            setSelectedCourseForQuiz(null);
-          }}
-          enrollment={enrollment}
-        />
-      )}
+        {/* Quiz Modal */}
+        {showQuizModal && selectedCourseForQuiz && (
+          <QuizModal
+            courseId={selectedCourseForQuiz}
+            onClose={() => {
+              setShowQuizModal(false);
+              setSelectedCourseForQuiz(null);
+            }}
+            onSuccess={(result) => {
+              console.log('Quiz submitted successfully:', result);
+              setShowQuizModal(false);
+              setSelectedCourseForQuiz(null);
+              // Refresh quizzes list or update UI as needed
+            }}
+          />
+        )}
+      </div>
     </AppLayout>
   );
 }

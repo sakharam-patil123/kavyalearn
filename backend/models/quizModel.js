@@ -45,32 +45,17 @@ const quizSchema = new mongoose.Schema({
             ref: 'User'
         },
         score: Number,
-        percentage: Number,
         answers: [{
             questionIndex: Number,
             selectedOption: Number,
             isCorrect: Boolean
         }],
-        completedAt: { type: Date, default: Date.now },
+        completedAt: Date,
         status: {
             type: String,
             enum: ['passed', 'failed'],
             required: true
         }
-    }],
-    studentMarks: [{
-        student: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            index: true
-        },
-        score: Number,
-        percentage: Number,
-        status: {
-            type: String,
-            enum: ['passed', 'failed']
-        },
-        attemptedAt: { type: Date, default: Date.now }
     }],
     isPublished: {
         type: Boolean,

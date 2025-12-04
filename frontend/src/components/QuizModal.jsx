@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../api';
 import '../assets/quizModal.css';
 
-const QuizModal = ({ courseId, onClose, enrollment }) => {
+const QuizModal = ({ courseId, onClose, onSuccess }) => {
   const [quizStatus, setQuizStatus] = useState(null);
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -18,17 +17,17 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
 
   const fetchQuizStatus = async () => {
     try {
-      const response = await api.get(`/quizzes/course/${courseId}/lock-status`);
+      const response = await api.get(`/quiz/course/${courseId}/lock-status`);
       setQuizStatus(response.data);
       
       if (response.data.isUnlocked && !response.data.quizTaken) {
         // Fetch quiz questions
-        const questionsResponse = await api.get(`/quizzes/${response.data.quizId}/questions`);
-        setQuiz(questionsResponse.data);
+        const quizResponse = await api.get(`/quiz/${response.data.quizId}`);
+        setQuiz(quizResponse.data);
       }
     } catch (error) {
       console.error('Error fetching quiz status:', error);
-      setQuizStatus(null);
+      setQuizStatus({ error: error.response?.data?.message || 'Error loading quiz' });
     } finally {
       setLoading(false);
     }
@@ -42,7 +41,7 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
   };
 
   const handleSubmitQuiz = async () => {
-    if (!quiz) return;
+    if (!quiz || !quizStatus) return;
 
     const submissionAnswers = Object.entries(answers).map(([qIdx, optIdx]) => ({
       questionIndex: parseInt(qIdx),
@@ -50,15 +49,20 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
     }));
 
     try {
-      const response = await api.post(`/quizzes/${quizStatus.quizId}/submit`, {
+      const response = await api.post(`/quiz/${quizStatus.quizId}/submit-and-store`, {
         answers: submissionAnswers
       });
 
       setResult(response.data);
       setSubmitted(true);
+      
+      // Notify parent that quiz was submitted successfully
+      if (onSuccess) {
+        onSuccess(response.data);
+      }
     } catch (error) {
       console.error('Error submitting quiz:', error);
-      alert('Error submitting quiz. Please try again.');
+      alert('Error submitting quiz: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -66,7 +70,7 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
     return (
       <div className="quiz-modal-overlay">
         <div className="quiz-modal">
-          <div className="quiz-loading">Loading...</div>
+          <div className="quiz-loading">Loading quiz...</div>
         </div>
       </div>
     );
@@ -79,7 +83,9 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
         <div className="quiz-modal quiz-locked">
           <button className="quiz-close" onClick={onClose}>✕</button>
           <div className="quiz-locked-content">
-            <Lock size={64} className="lock-icon" />
+            <div className="lock-icon">
+              <i className="bi bi-lock-fill" style={{ fontSize: '48px', color: '#e53e3e' }}></i>
+            </div>
             <h2>Quiz Locked</h2>
             <p>Complete all course lessons to unlock this quiz.</p>
             <div className="progress-bar">
@@ -107,12 +113,14 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
         <div className="quiz-modal quiz-completed">
           <button className="quiz-close" onClick={onClose}>✕</button>
           <div className="quiz-completed-content">
-            <CheckCircle size={64} className="check-icon" />
+            <div className="check-icon">
+              <i className="bi bi-check-circle-fill" style={{ fontSize: '48px', color: '#48bb78' }}></i>
+            </div>
             <h2>Quiz Already Completed</h2>
             <div className="marks-display">
               <div className="marks-item">
                 <span>Score:</span>
-                <strong>{quizStatus.marks} / 100</strong>
+                <strong>{quizStatus.marks} marks</strong>
               </div>
               <div className="marks-item">
                 <span>Percentage:</span>
@@ -121,7 +129,7 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
               <div className="marks-item">
                 <span>Status:</span>
                 <strong className={quizStatus.status === 'passed' ? 'passed' : 'failed'}>
-                  {quizStatus.status.toUpperCase()}
+                  {quizStatus.status?.toUpperCase() || 'N/A'}
                 </strong>
               </div>
             </div>
@@ -147,8 +155,7 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
             <h2>{quiz.title}</h2>
             <div className="quiz-meta">
               <span>Total Marks: {quiz.totalMarks}</span>
-              <span>Duration: {quiz.duration} minutes</span>
-              <span>Question {currentQuestion + 1} of {quiz.questions.length}</span>
+              <span>Q {currentQuestion + 1} of {quiz.questions.length}</span>
             </div>
           </div>
 
@@ -208,7 +215,11 @@ const QuizModal = ({ courseId, onClose, enrollment }) => {
           <button className="quiz-close" onClick={onClose}>✕</button>
           <div className="quiz-results-content">
             <div className={`results-status ${isPassed ? 'passed' : 'failed'}`}>
-              {isPassed ? <CheckCircle size={64} /> : <AlertCircle size={64} />}
+              {isPassed ? 
+                <i className="bi bi-check-circle-fill" style={{ fontSize: '48px', color: '#48bb78' }}></i>
+                : 
+                <i className="bi bi-exclamation-circle-fill" style={{ fontSize: '48px', color: '#e53e3e' }}></i>
+              }
               <h2>{isPassed ? 'Congratulations!' : 'Needs Improvement'}</h2>
             </div>
 
