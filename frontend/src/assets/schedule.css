@@ -158,8 +158,16 @@ body {
 }
 
 .btn-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background-color: #2b6cb0;
   color: white;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  width: auto;
 }
 .btn-event:hover {
   background-color: #1a365d;

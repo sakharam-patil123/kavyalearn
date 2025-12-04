@@ -22,6 +22,7 @@ import AdminStudents from './pages/admin/AdminStudents';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminEnrollments from './pages/admin/AdminEnrollments';
 import AdminSettings from './pages/admin/AdminSettings';
+import StudentReport from './pages/StudentReport';
 
 
 function Layout() {
@@ -77,6 +78,7 @@ function Layout() {
           <Route path="/admin/settings" element={<ProtectedRoute requireAdmin={true}><AdminSettings /></ProtectedRoute>} />
           <Route path="/subscription" element={<Subscription />}></Route>
           <Route path="/schedule" element={<Schedule />} />
+          <Route path="/parent/student-report" element={<StudentReport />} />
           <Route path="/payment" element={<PaymentInterface />}></Route>
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />

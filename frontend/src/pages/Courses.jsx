@@ -1509,8 +1509,9 @@ export default function Courses() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.getCourses();
-        if (res && res.courses) {
+        // Fetch courses from backend if available (use axios client exported as `api`)
+        const res = await api.get('/api/courses');
+        if (res && res.data && res.data.courses) {
           // Replace the student stat with live course count for visibility
           // This is minimal, non-intrusive integration to show backend data
           // If you want more, we can wire the whole curriculum to course data

@@ -18,14 +18,14 @@ const QuizModal = ({ courseId, onClose, onSuccess }) => {
   const fetchQuizStatus = async () => {
     try {
       console.log('[QuizModal] Fetching quiz status for courseId:', courseId);
-      const response = await api.get(`/quiz/course/${courseId}/lock-status`);
+      const response = await api.get(`/api/quiz/course/${courseId}/lock-status`);
       console.log('[QuizModal] Quiz status response:', response.data);
       setQuizStatus(response.data);
       
       if (response.data.isUnlocked && !response.data.quizTaken) {
         // Fetch quiz questions
         console.log('[QuizModal] Fetching quiz questions for quizId:', response.data.quizId);
-        const quizResponse = await api.get(`/quiz/${response.data.quizId}`);
+        const quizResponse = await api.get(`/api/quiz/${response.data.quizId}`);
         console.log('[QuizModal] Quiz questions received:', quizResponse.data);
         setQuiz(quizResponse.data);
       }
@@ -56,7 +56,7 @@ const QuizModal = ({ courseId, onClose, onSuccess }) => {
     }));
 
     try {
-      const response = await api.post(`/quiz/${quizStatus.quizId}/submit-and-store`, {
+      const response = await api.post(`/api/quiz/${quizStatus.quizId}/submit-and-store`, {
         answers: submissionAnswers
       });
 
