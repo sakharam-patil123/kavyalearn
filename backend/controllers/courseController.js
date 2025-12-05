@@ -2,8 +2,11 @@ const Course = require('../models/courseModel');
 const Lesson = require('../models/lessonModel');
 const User = require('../models/userModel');
 
+<<<<<<< HEAD
 const mongoose = require('mongoose');
 
+=======
+>>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 // @desc    Create new course
 // @route   POST /api/courses
 // @access  Private/Instructor
@@ -90,6 +93,7 @@ exports.getCourseById = async (req, res) => {
     }
 };
 
+<<<<<<< HEAD
 // @desc    Get course statistics (enrollments, rating, total duration, lesson count)
 // @route   GET /api/courses/:id/stats
 // @access  Public
@@ -127,6 +131,8 @@ exports.getCourseStats = async (req, res) => {
     }
 };
 
+=======
+>>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 // @desc    Update course
 // @route   PUT /api/courses/:id
 // @access  Private/Instructor
