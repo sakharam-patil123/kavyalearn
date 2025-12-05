@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { jsPDF } from "jspdf";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -1340,6 +1340,7 @@ export default function Courses() {
   const navigate = useNavigate();
   // `tab` holds the currently expanded section. null means all collapsed.
   const [tab, setTab] = useState(null);
+  const curriculumRef = useRef(null);
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showResourceForm, setShowResourceForm] = useState(false);
@@ -1361,18 +1362,79 @@ export default function Courses() {
   const [coreConcepts] = useState(initialCoreConcepts);
   const [practicalApplications] = useState(initialPracticalApplications);
 
+  // Course metadata (defaults to 0 when not available)
+  const [enrolledCount, setEnrolledCount] = useState(0);
+  const [courseRating, setCourseRating] = useState(0);
+
   // Enrollment and watched lessons state
   // 'enrolled' controls whether the student can access lessons
   const [enrolled, setEnrolled] = useLocalStorage("enrolled", false);
+
   // Keep track of watched lesson titles to compute progress
-  // Initialize with the first two lessons (Review lessons) already watched
-  const [watchedLessons, setWatchedLessons] = useLocalStorage(
-    "watchedLessons",
-    [
-      "Introduction to the Course",
-      "Setting up Your Environment"
-    ]
-  );
+  // We'll persist watched lessons per-user in localStorage under key `watchedLessons_{userId}`
+  const [userProfile, setUserProfile] = useState(null);
+  const [watchedLessons, setWatchedLessons] = useState([]);
+
+  // Helper to persist watched lessons for the current user
+  const persistWatchedLessons = (lessonsArray) => {
+    setWatchedLessons(lessonsArray || []);
+    try {
+      const key = userProfile && userProfile._id ? `watchedLessons_${userProfile._id}` : 'watchedLessons_guest';
+      window.localStorage.setItem(key, JSON.stringify(lessonsArray || []));
+    } catch (err) {
+      console.warn('Could not persist watched lessons', err);
+    }
+  };
+
+  // Load user profile and per-user watched lessons on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const profileRes = await fetch('/api/auth/profile', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setUserProfile(profileData);
+          // load per-user watched lessons
+          const key = `watchedLessons_${profileData._id}`;
+          const raw = window.localStorage.getItem(key);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              setWatchedLessons(Array.isArray(parsed) ? parsed : []);
+            } catch (e) {
+              setWatchedLessons([]);
+            }
+          } else {
+            // No stored watched lessons for this user: pre-populate review lessons so new users
+            // start with review items already marked (improves initial progress visibility)
+            const defaultWatched = [
+              ...gettingStarted,
+              ...coreConcepts,
+              ...practicalApplications,
+            ]
+              .filter((l) => l.status === 'Review')
+              .map((l) => l.title);
+
+            setWatchedLessons(defaultWatched);
+            try {
+              window.localStorage.setItem(key, JSON.stringify(defaultWatched));
+            } catch (err) {
+              console.warn('Failed to persist default watched lessons', err);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load profile for watched lessons', err);
+      }
+    })();
+  }, []);
 
   // Active lesson player state (for Practical Applications and new modules)
   const [activeLessonVideo, setActiveLessonVideo] = useState(null);
@@ -1519,6 +1581,14 @@ export default function Courses() {
     })();
   }, []);
 
+  // Scroll curriculum into view whenever it's opened
+  useEffect(() => {
+    if (tab === "curriculum" && curriculumRef.current) {
+      // Smooth scroll so user sees the curriculum content
+      curriculumRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [tab]);
+
   // Compute course progress based on watched lessons
   const totalLessons =
     gettingStarted.length +
@@ -1664,9 +1734,19 @@ export default function Courses() {
 
                     // Mark lesson as watched (persisted). Only add once.
                     if (lesson.title) {
-                      setWatchedLessons((prev) =>
-                        prev && prev.includes(lesson.title) ? prev : [...(prev || []), lesson.title]
-                      );
+                      // persist per-user watched lessons
+                      setWatchedLessons((prev) => {
+                        const prevArr = Array.isArray(prev) ? prev : [];
+                        if (prevArr.includes(lesson.title)) return prevArr;
+                        const updated = [...prevArr, lesson.title];
+                        try {
+                          const key = userProfile && userProfile._id ? `watchedLessons_${userProfile._id}` : 'watchedLessons_guest';
+                          window.localStorage.setItem(key, JSON.stringify(updated));
+                        } catch (err) {
+                          console.warn('Failed to persist watched lessons', err);
+                        }
+                        return updated;
+                      });
                     }
                   }}
                 >
@@ -1704,38 +1784,70 @@ export default function Courses() {
                     alert("Please enroll in this course to continue learning.");
                     return;
                   }
-                  setHeroVideo("https://www.youtube.com/embed/tMHrpmJH5I8");
-                  setHeroTitle("Chemistry Fundamentals");
+
+                  // Open curriculum tab
                   setTab("curriculum");
+
+                  // Try to open the last watched lesson. If none, open the first available lesson.
+                  const lastWatched = watchedLessons && watchedLessons.length ? watchedLessons[watchedLessons.length - 1] : null;
+
+                  // Helper to find a lesson by title across modules
+                  const findLesson = (title) => {
+                    if (!title) return null;
+                    // Search in Getting Started
+                    let found = gettingStarted.find(l => l.title === title);
+                    if (found) return { lesson: found, module: 'gettingStarted' };
+                    found = coreConcepts.find(l => l.title === title);
+                    if (found) return { lesson: found, module: 'coreConcepts' };
+                    found = practicalApplications.find(l => l.title === title);
+                    if (found) return { lesson: found, module: 'practicalApplications' };
+                    // Search in newModules
+                    for (const module of (newModules || [])) {
+                      const inModule = (module.lessons || []).find(l => l.title === title);
+                      if (inModule) return { lesson: inModule, module: 'newModule' };
+                    }
+                    return null;
+                  };
+
+                  // Determine which lesson to open
+                  let target = null;
+                  if (lastWatched) target = findLesson(lastWatched);
+                  if (!target) {
+                    // fallback: open first lesson from ordered list
+                    const first = allLessonsInOrder && allLessonsInOrder.length ? allLessonsInOrder[0] : null;
+                    if (first) target = findLesson(first.title) || { lesson: first, module: 'gettingStarted' };
+                  }
+
+                  // Open the lesson using the appropriate setter so the corresponding module shows the player
+                  if (target && target.lesson) {
+                    const lesson = target.lesson;
+                    if (target.module === 'gettingStarted') {
+                      setGettingStartedVideo(lesson.videoLink);
+                      setGettingStartedTitle(lesson.title);
+                    } else if (target.module === 'coreConcepts') {
+                      setCoreConceptsVideo(lesson.videoLink);
+                      setCoreConceptsTitle(lesson.title);
+                    } else {
+                      // practicalApplications and newModules use activeLessonVideo
+                      setActiveLessonVideo(lesson.videoLink);
+                      setActiveLessonTitle(lesson.title);
+                    }
+                  }
                 }}
               >
                 <i className="bi bi-play-fill"></i> Continue Learning
               </button>
-              {/* Enroll / Unenroll Button */}
-              {!enrolled ? (
+              {/* Enroll Button: show only when not enrolled. Do not provide an Unenroll option. */}
+              {!enrolled && (
                 <button
                   className="btn btn-learn d-flex align-items-center gap-2"
                   onClick={() => {
                     setEnrolled(true);
-                    // reset watched lessons to ensure progress starts from zero
-                    setWatchedLessons([]);
+                    // Do not clear watched lessons here; keep review defaults so progress is meaningful
                     alert("You are now enrolled. Start learning!");
                   }}
                 >
                   <i className="bi bi-person-plus"></i> Enroll
-                </button>
-              ) : (
-                <button
-                  className="btn btn-outline-danger d-flex align-items-center gap-2"
-                  onClick={() => {
-                    // Allow manual unenroll for testing; clear watched lessons
-                    if (window.confirm("Unenroll from this course?")) {
-                      setEnrolled(false);
-                      setWatchedLessons([]);
-                    }
-                  }}
-                >
-                  <i className="bi bi-person-dash"></i> Unenroll
                 </button>
               )}
               <button
@@ -1837,7 +1949,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <div className="stat-title">Students Enrolled</div>
-                  <div className="stat-value">12,456</div>
+                  <div className="stat-value">{enrolledCount}</div>
                 </div>
               </div>
             </div>
@@ -1868,7 +1980,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <div className="stat-title">Course Rating</div>
-                  <div className="stat-value">4.8/5.0</div>
+                  <div className="stat-value">{courseRating ? `${courseRating}/5.0` : '0/5.0'}</div>
                 </div>
               </div>
             </div>
@@ -1983,7 +2095,7 @@ export default function Courses() {
         <div className="tab-content-wrap">
           {/* Curriculum tab */}
           {tab === "curriculum" && (
-            <div className="container-fluid p-0 mt-4">
+            <div ref={curriculumRef} className="container-fluid p-0 mt-4">
               {/* Add New Module UI removed per request */}
 
               {/* Module Panels */}

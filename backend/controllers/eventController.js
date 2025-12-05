@@ -1,5 +1,11 @@
 const Event = require('../models/eventModel');
 const asyncHandler = require('express-async-handler');
+// SendGrid for sending emails (API key should be set in .env as SENDGRID_API_KEY)
+const sgMail = require('@sendgrid/mail');
+
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 // @desc    Create new event
 // @route   POST /api/events
@@ -156,6 +162,66 @@ const deleteEvent = asyncHandler(async (req, res) => {
     res.json({ message: 'Event removed' });
 });
 
+// @desc    Set reminder for upcoming event
+// @route   POST /api/events/reminder
+// @access  Private
+const setReminder = asyncHandler(async (req, res) => {
+    const { eventTitle, eventDate, reminderType } = req.body;
+
+    if (!eventTitle || !eventDate) {
+        res.status(400);
+        throw new Error('Event title and date are required');
+    }
+
+    // Create reminder object
+    const reminder = {
+        userId: req.user._id,
+        userName: req.user.fullName,
+        userEmail: req.user.email,
+        eventTitle,
+        eventDate,
+        reminderType,
+        createdAt: new Date(),
+        reminded: false
+    };
+
+    // Log reminder to console (in production, send email/notification)
+    console.log('📢 New Reminder Set:', reminder);
+
+    // Attempt to send an email reminder immediately (simple/dummy message).
+    // This uses SendGrid; if SENDGRID_API_KEY is not configured we'll skip sending.
+    let emailResult = null;
+    if (process.env.SENDGRID_API_KEY) {
+        try {
+            const fromEmail = process.env.FROM_EMAIL || 'no-reply@kavyalearn.com';
+            const msg = {
+                to: reminder.userEmail,
+                from: fromEmail,
+                subject: `Reminder: ${eventTitle}`,
+                text: `Hi ${reminder.userName || ''},\n\nThis is a reminder for the upcoming event: ${eventTitle} scheduled at ${eventDate}.\n\nThanks,\nKavyaLearn Team`,
+                html: `<p>Hi ${reminder.userName || ''},</p><p>This is a reminder for the upcoming event: <strong>${eventTitle}</strong> scheduled at <strong>${eventDate}</strong>.</p><p>Thanks,<br/>KavyaLearn Team</p>`
+            };
+
+            emailResult = await sgMail.send(msg);
+            // mark reminded true for response
+            reminder.reminded = true;
+            console.log('✉️ Reminder email sent to', reminder.userEmail);
+        } catch (err) {
+            console.warn('Failed to send reminder email:', err?.message || err);
+            // continue — we still return success for the reminder creation
+        }
+    } else {
+        console.log('SENDGRID_API_KEY not configured — skipping email send.');
+    }
+
+    // NOTE: For production you'd persist the reminder and schedule a delayed job
+    res.status(201).json({
+        message: `Reminder set for ${eventTitle}`,
+        reminder,
+        emailResult
+    });
+});
+
 module.exports = {
     createEvent,
     getEvents,
@@ -163,5 +229,6 @@ module.exports = {
     getUpcomingEvents,
     enrollInEvent,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    setReminder
 };

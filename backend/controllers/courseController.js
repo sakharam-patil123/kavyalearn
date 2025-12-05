@@ -2,6 +2,8 @@ const Course = require('../models/courseModel');
 const Lesson = require('../models/lessonModel');
 const User = require('../models/userModel');
 
+const mongoose = require('mongoose');
+
 // @desc    Create new course
 // @route   POST /api/courses
 // @access  Private/Instructor
@@ -83,6 +85,43 @@ exports.getCourseById = async (req, res) => {
         } else {
             res.status(404).json({ message: 'Course not found' });
         }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Get course statistics (enrollments, rating, total duration, lesson count)
+// @route   GET /api/courses/:id/stats
+// @access  Public
+exports.getCourseStats = async (req, res) => {
+    try {
+        const courseId = req.params.id;
+
+        const course = await Course.findById(courseId).select('enrolledStudents rating');
+
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        // Aggregate lessons to compute total duration and lesson count
+        const agg = await Lesson.aggregate([
+            { $match: { course: mongoose.Types.ObjectId(courseId) } },
+            {
+                $group: {
+                    _id: null,
+                    totalDuration: { $sum: '$duration' },
+                    lessonCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalDuration = agg[0] ? agg[0].totalDuration : 0;
+        const lessonCount = agg[0] ? agg[0].lessonCount : 0;
+
+        const enrolledCount = Array.isArray(course.enrolledStudents) ? course.enrolledStudents.length : 0;
+        const rating = course.rating || 0;
+
+        res.json({ enrolledCount, rating, totalDuration, lessonCount });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

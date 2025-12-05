@@ -3,6 +3,7 @@ const {
     createCourse,
     getCourses,
     getCourseById,
+    getCourseStats,
     updateCourse,
     deleteCourse,
     enrollCourse,
@@ -20,6 +21,9 @@ router.route('/:id')
     .get(getCourseById)
     .put(protect, updateCourse)
     .delete(protect, deleteCourse);
+
+// course stats (enrollment count, rating, total duration, lesson count)
+router.get('/:id/stats', getCourseStats);
 
 router.post('/:id/enroll', protect, enrollCourse);
 router.post('/:id/reviews', protect, reviewCourse);
