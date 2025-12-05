@@ -5,6 +5,7 @@ import {
   Routes,
   Route,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
@@ -22,6 +23,17 @@ import AdminStudents from './pages/admin/AdminStudents';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminEnrollments from './pages/admin/AdminEnrollments';
 import AdminSettings from './pages/admin/AdminSettings';
+// Instructor Pages
+import InstructorDashboard from './pages/Instructor/InstructorDashboard';
+import InstructorCourses from './pages/Instructor/InstructorCourses';
+import InstructorStudents from './pages/Instructor/InstructorStudents';
+import InstructorLessons from './pages/Instructor/InstructorLessons';
+import InstructorAnalytics from './pages/Instructor/InstructorAnalytics';
+// Student Pages
+import StudentDashboard from './pages/Student/StudentDashboard';
+import StudentCourses from './pages/Student/StudentCourses';
+import StudentAchievements from './pages/Student/StudentAchievements';
+import StudentActivity from './pages/Student/StudentActivity';
 
 
 function Layout() {
@@ -68,13 +80,29 @@ function Layout() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Registration />} />
 
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/courses" element={<Courses />} />
+          {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/students" element={<ProtectedRoute requireAdmin={true}><AdminStudents /></ProtectedRoute>} />
           <Route path="/admin/courses" element={<ProtectedRoute requireAdmin={true}><AdminCourses /></ProtectedRoute>} />
           <Route path="/admin/enrollments" element={<ProtectedRoute requireAdmin={true}><AdminEnrollments /></ProtectedRoute>} />
           <Route path="/admin/settings" element={<ProtectedRoute requireAdmin={true}><AdminSettings /></ProtectedRoute>} />
+
+          {/* Instructor Routes */}
+          <Route path="/instructor/dashboard" element={<ProtectedRoute requireRole="instructor"><InstructorDashboard /></ProtectedRoute>} />
+          <Route path="/instructor/courses" element={<ProtectedRoute requireRole="instructor"><InstructorCourses /></ProtectedRoute>} />
+          <Route path="/instructor/students" element={<ProtectedRoute requireRole="instructor"><InstructorStudents /></ProtectedRoute>} />
+          <Route path="/instructor/lessons" element={<ProtectedRoute requireRole="instructor"><InstructorLessons /></ProtectedRoute>} />
+          <Route path="/instructor/analytics" element={<ProtectedRoute requireRole="instructor"><InstructorAnalytics /></ProtectedRoute>} />
+
+          {/* Student Routes */}
+          <Route path="/dashboard" element={<ProtectedRoute requireRole="student"><Dashboard /></ProtectedRoute>} />
+          <Route path="/student/courses" element={<ProtectedRoute requireRole="student"><StudentCourses /></ProtectedRoute>} />
+          <Route path="/student/achievements" element={<ProtectedRoute requireRole="student"><StudentAchievements /></ProtectedRoute>} />
+          <Route path="/student/activity" element={<ProtectedRoute requireRole="student"><StudentActivity /></ProtectedRoute>} />
+
+          {/* Public Routes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/courses" element={<Courses />} />
           <Route path="/subscription" element={<Subscription />}></Route>
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/payment" element={<PaymentInterface />}></Route>

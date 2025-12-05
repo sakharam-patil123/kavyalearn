@@ -1,8 +1,14 @@
 const BASE = 'http://localhost:5000/api';
 
-function authHeaders() {
+function authHeaders(isForm = false) {
   const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+  const headers = {};
+
+  if (token) headers.Authorization = `Bearer ${token}`;
+  // Don't set Content-Type for FormData — browser will add the correct boundary
+  if (!isForm) headers['Content-Type'] = 'application/json';
+
+  return headers;
 }
 
 export async function getCourses() {
@@ -47,7 +53,50 @@ export async function createEvent(payload) {
 }
 
 export async function getProfile() {
-  const res = await fetch(`${BASE}/auth/profile`, { headers: authHeaders() });
+  const res = await fetch(`${BASE}/users/profile`, { headers: authHeaders() });
+  return res.json();
+}
+
+export async function updateProfile(payload) {
+  const res = await fetch(`${BASE}/users/profile`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to update profile');
+  }
+
+  return res.json();
+}
+
+/// =================== PHOTO UPLOAD ===================
+export async function uploadProfilePhoto(file) {
+  const formData = new FormData();
+  formData.append('profilePhoto', file);
+
+  const res = await fetch(`${BASE}/users/upload-photo`, {
+    method: 'POST',
+    headers: authHeaders(true),  // 🟢 FIXED — no JSON header
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Failed to upload photo');
+  }
+
+  return res.json();
+}
+
+// Get user streak
+export async function getStreak() {
+  const res = await fetch(`${BASE}/users/streak`, { headers: authHeaders() });
+  if (!res.ok) {
+    throw new Error('Failed to load streak');
+  }
   return res.json();
 }
 
@@ -100,5 +149,8 @@ export default {
   getProgressOverview,
   getRecentActivity,
   downloadCertificate,
-  aiQuery
+  aiQuery,
+  uploadProfilePhoto,
+  updateProfile,
+  getStreak
 };
