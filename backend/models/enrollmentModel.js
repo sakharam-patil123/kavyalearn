@@ -9,23 +9,7 @@ const enrollmentSchema = new mongoose.Schema({
   watchHours: { type: Number, default: 0 },
   lastAccessed: { type: Date },
   grade: { type: String },
-<<<<<<< HEAD
   feedback: { type: String }
-=======
-  feedback: { type: String },
-  // Quiz tracking
-  coursePerformance: { type: Number, default: 0 }, // 0-100% based on lesson completion
-  quizMarks: { type: Number, default: 0 },
-  quizPercentage: { type: Number, default: 0 },
-  quizTaken: { type: Boolean, default: false },
-  quizAttempts: [{
-    quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' },
-    marks: Number,
-    percentage: Number,
-    status: { type: String, enum: ['passed', 'failed'] },
-    attemptedAt: { type: Date, default: Date.now }
-  }]
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 }, { timestamps: true });
 
 enrollmentSchema.index({ studentId: 1, courseId: 1 }, { unique: true });

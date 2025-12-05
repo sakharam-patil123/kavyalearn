@@ -33,10 +33,6 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const aiTutorRoutes = require('./routes/aiTutorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const featureFlagRoutes = require('./routes/featureFlagRoutes');
-<<<<<<< HEAD
-=======
-const reportRoutes = require('./routes/reportRoutes');
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -52,11 +48,6 @@ app.use('/api/ai', aiTutorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/flags', featureFlagRoutes);
 
-<<<<<<< HEAD
-=======
-app.use('/api/reports', reportRoutes);
-
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 // Welcome route
 app.get("/", (req, res) => {
   res.send("KavyaLearn API is running...");
@@ -80,11 +71,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-<<<<<<< HEAD
 app.listen(PORT, () => {
-=======
-app.listen(PORT, '0.0.0.0', () => {
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   console.log(`
 🚀 Server running on port ${PORT}
 👉 API Documentation: http://localhost:${PORT}/api-docs
