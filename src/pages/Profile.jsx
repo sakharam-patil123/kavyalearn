@@ -36,9 +36,10 @@ export default function Profile() {
     badge: "Premium Member",
     bio: "Passionate learner exploring web development and computer science. On a mission to master full-stack development!",
     email: "deepak@example.com",
-    phone: "+91 98765 43210",
+    phone: "+91 ",
     location: "Mumbai, India",
-    joined: "Joined March 2024",
+    joined: " ",
+    avatar: null,
     stats: {
       courses: 0,
       hours: 0,
@@ -46,18 +47,39 @@ export default function Profile() {
       avg: "0%",
     },
   });
+  const [streakDays, setStreakDays] = useState(0);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [userRole, setUserRole] = useState('student'); // Default to student
+
+  // Check if user is a student (show all sections) or other role (hide certain sections)
+  const isStudent = userRole === 'student';
 
   useEffect(() => {
     (async () => {
       try {
+        // Get role from localStorage or API
+        const storedRole = localStorage.getItem('userRole');
+        if (storedRole) {
+          setUserRole(storedRole);
+        }
+
         const api = await import("../api");
         const profileRes = await api.getProfile();
 
         if (profileRes && profileRes._id) {
+          // Update role from response if available
+          if (profileRes.role) {
+            setUserRole(profileRes.role);
+            localStorage.setItem('userRole', profileRes.role);
+          }
           setProfile((prev) => ({
             ...prev,
             name: profileRes.fullName || prev.name,
             email: profileRes.email || prev.email,
+            phone: profileRes.phone || prev.phone,
+            location: profileRes.location || prev.location,
+            bio: profileRes.bio || prev.bio,
+            avatar: profileRes.avatar || null,
             initials: (profileRes.fullName || prev.name)
               .split(" ")
               .map((n) => n[0])
@@ -68,6 +90,16 @@ export default function Profile() {
               ? `Joined ${new Date(profileRes.createdAt).toLocaleString()}`
               : prev.joined,
           }));
+        }
+
+        // Load streak
+        try {
+          const streakData = await api.getStreak();
+          if (streakData && streakData.streakDays !== undefined) {
+            setStreakDays(streakData.streakDays);
+          }
+        } catch (err) {
+          console.warn("Could not load streak", err);
         }
 
         // Load dynamic progress, skills, certificates and activity
@@ -108,10 +140,12 @@ export default function Profile() {
           console.warn("Could not load progress overview", err);
         }
       } catch (err) {
-        // ignore if unauthenticated
+        // ignore if unauthenticated — log for visibility
+        console.warn('Could not load profile or user not authenticated', err?.message || err);
       }
     })();
   }, []);
+  
 
   const [skills, setSkills] = useState([
     { name: "Course Progress", percent: 0, color: "#1b65d4" },
@@ -168,10 +202,63 @@ export default function Profile() {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      const api = await import("../api");
+      const result = await api.uploadProfilePhoto(file);
+      
+      if (result.avatar) {
+        setProfile((prev) => ({
+          ...prev,
+          avatar: result.avatar,
+        }));
+        alert("✅ Profile photo uploaded successfully!");
+      }
+    } catch (error) {
+      alert(error.message || "Failed to upload photo. Please try again.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setIsEditing(false);
-    alert("✅ Profile updated successfully!");
+    (async () => {
+      try {
+        const api = await import('../api');
+        const payload = {
+          fullName: profile.name,
+          phone: profile.phone,
+          location: profile.location,
+          bio: profile.bio,
+        };
+        const updated = await api.updateProfile(payload);
+        if (updated && updated._id) {
+          setProfile((prev) => ({ ...prev, name: updated.fullName || prev.name, phone: updated.phone ?? prev.phone, avatar: updated.avatar ?? prev.avatar }));
+          alert('✅ Profile updated successfully!');
+        }
+      } catch (err) {
+        alert(err?.message || 'Failed to update profile');
+      } finally {
+        setIsEditing(false);
+      }
+    })();
   };
 
   // prevent background scrolling when modal is open
@@ -185,7 +272,17 @@ export default function Profile() {
         {/* === Profile Card === */}
         <div className="profile-wrapper">
           <div className="profile-top-card">
-            <div className="avatar">{profile.initials}</div>
+            <div className="avatar">
+              {profile.avatar ? (
+                <img 
+                  src={profile.avatar} 
+                  alt={profile.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                />
+              ) : (
+                profile.initials
+              )}
+            </div>
 
             <div className="profile-main">
               <div className="profile-main-row">
@@ -222,38 +319,43 @@ export default function Profile() {
           </div>
 
           <div className="profile-stat-grid">
-            <ProfileStatCard
-              icon={<BookOpen color="#1b337f" size={25} />}
-              value={profile.stats.courses}
-              label="Courses Enrolled"
-              iconColor="#eaf1ff"
-              valueColor="#1b337f"
-            />
-            <ProfileStatCard
-              icon={<Clock color="#00796b" size={25} />}
-              value={profile.stats.hours}
-              label="Hours Learned"
-              iconColor="#eaf1ff"
-              valueColor="#00796b"
-            />
-            <ProfileStatCard
-              icon={<Award color="#60b684ff" size={25} />}
-              value={profile.stats.achievements}
-              label="Achievements"
-              iconColor="#eaf1ff"
-              valueColor="#60b684ff"
-            />
-            <ProfileStatCard
-              icon={<TrendingUp color="#388e3c" size={25} />}
-              value={profile.stats.avg}
-              label="Avg. Score"
-              iconColor="#eaf1ff"
-              valueColor="#388e3c"
-            />
+            {isStudent && (
+              <>
+                <ProfileStatCard
+                  icon={<BookOpen color="#1b337f" size={25} />}
+                  value={profile.stats.courses}
+                  label="Courses Enrolled"
+                  iconColor="#eaf1ff"
+                  valueColor="#1b337f"
+                />
+                <ProfileStatCard
+                  icon={<Clock color="#00796b" size={25} />}
+                  value={profile.stats.hours}
+                  label="Hours Learned"
+                  iconColor="#eaf1ff"
+                  valueColor="#00796b"
+                />
+                <ProfileStatCard
+                  icon={<Award color="#60b684ff" size={25} />}
+                  value={profile.stats.achievements}
+                  label="Achievements"
+                  iconColor="#eaf1ff"
+                  valueColor="#60b684ff"
+                />
+                <ProfileStatCard
+                  icon={<TrendingUp color="#388e3c" size={25} />}
+                  value={profile.stats.avg}
+                  label="Avg. Score"
+                  iconColor="#eaf1ff"
+                  valueColor="#388e3c"
+                />
+              </>
+            )}
           </div>
         </div>
 
-        {/* === Skills and Activity === */}
+        {/* === Skills and Activity (Only for Students) === */}
+        {isStudent && (
         <div className="skills-activity-section">
           <div className="skills-card">
             <h3>Skills & Progress</h3>
@@ -294,8 +396,10 @@ export default function Profile() {
             </ul>
           </div>
         </div>
+        )}
 
-        {/* === Bottom Section === */}
+        {/* === Bottom Section (Only for Students) === */}
+        {isStudent && (
         <div className="bottom-sections">
           <div className="left-column">
             <div className="certificates-section">
@@ -366,8 +470,8 @@ export default function Profile() {
               <div className="streak-icon">
                 <Award size={36} color="white" />
               </div>
-              <h4>45 Days</h4>
-              <p>Keep up the great work!</p>
+              <h4>{streakDays} {streakDays === 1 ? 'Day' : 'Days'}</h4>
+              <p>{streakDays === 0 ? 'Start your streak by logging in daily!' : 'Keep up the great work!'}</p>
             </div>
 
             <div className="support-card">
@@ -388,6 +492,7 @@ export default function Profile() {
             </div>
           </div>
         </div>
+        )}
 
         {/* === 🧩 Modal for Editing Profile === */}
         {isEditing && (
@@ -395,6 +500,28 @@ export default function Profile() {
             <div className="modal-content">
               <h2>Edit Profile</h2>
               <form className="edit-form" onSubmit={handleSubmit}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    Profile Photo
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    disabled={uploadingPhoto}
+                    style={{ width: '100%', padding: '0.5rem' }}
+                  />
+                  {uploadingPhoto && <p style={{ marginTop: '0.5rem', color: '#666' }}>Uploading...</p>}
+                  {profile.avatar && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <img 
+                        src={profile.avatar} 
+                        alt="Preview" 
+                        style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
                   name="name"
