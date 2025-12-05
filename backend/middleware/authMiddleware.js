@@ -3,6 +3,10 @@ const User = require('../models/userModel');
 
 const protect = async (req, res, next) => {
     try {
+        // Allow preflight requests to pass through without auth
+        if (req.method === 'OPTIONS') {
+            return next();
+        }
         // Check for token
         const authHeader = req.headers.authorization;
         console.log('Auth header:', authHeader);

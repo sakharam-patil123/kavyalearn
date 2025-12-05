@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const { uploadToCloudinary } = require('../config/cloudinary');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -13,7 +14,7 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
     try {
-        const { fullName, email, password } = req.body;
+        const { fullName, email, password, phone } = req.body;
 
         // Check if user exists
         const userExists = await User.findOne({ email });
@@ -26,6 +27,7 @@ const registerUser = async (req, res) => {
             fullName,
             email,
             password,
+            phone,
         });
 
         if (user) {
@@ -35,12 +37,43 @@ const registerUser = async (req, res) => {
                     _id: user._id,
                     fullName: user.fullName,
                     email: user.email,
+                    phone: user.phone,
                     token: generateToken(user._id),
                 },
             });
         }
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+};
+
+// Helper function to calculate streak
+const calculateStreak = (lastLoginDate, currentStreak) => {
+    if (!lastLoginDate) {
+        // First login - streak is 0
+        return 0;
+    }
+
+    const now = new Date();
+    const lastLogin = new Date(lastLoginDate);
+    
+    // Reset time to midnight for accurate day comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const lastLoginDay = new Date(lastLogin.getFullYear(), lastLogin.getMonth(), lastLogin.getDate());
+    
+    // Calculate difference in days
+    const diffTime = today - lastLoginDay;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        // Same day login - don't increase streak
+        return currentStreak;
+    } else if (diffDays === 1) {
+        // Consecutive day - increase streak
+        return currentStreak + 1;
+    } else {
+        // Streak broken - reset to 1 (today's login)
+        return 1;
     }
 };
 
@@ -56,12 +89,22 @@ const loginUser = async (req, res) => {
 
         // Check if user exists and password matches
         if (user && (await user.matchPassword(password))) {
+            // Calculate streak
+            const newStreak = calculateStreak(user.lastLoginDate, user.streakDays || 0);
+            
+            // Update user's last login and streak
+            user.lastLoginDate = new Date();
+            user.streakDays = newStreak;
+            await user.save();
+
             res.json({
                 _id: user._id,
                 fullName: user.fullName,
                 email: user.email,
+                phone: user.phone,
                 role: user.role,
                 token: generateToken(user._id),
+                streakDays: newStreak,
             });
         } else {
             res.status(401).json({ message: 'Invalid credentials, please sign up first' });
@@ -102,8 +145,13 @@ const getUserProfile = async (req, res) => {
             _id: user._id,
             fullName: user.fullName,
             email: user.email,
+            phone: user.phone,
+            location: user.location || null,
+            bio: user.bio || null,
             role: user.role,
             createdAt: user.createdAt,
+            avatar: user.avatar,
+            streakDays: user.streakDays || 0,
             stats: {
                 totalCourses,
                 hoursLearned,
@@ -111,6 +159,42 @@ const getUserProfile = async (req, res) => {
                 averageScore
             },
             institution: user.institution
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// @desc    Update user profile (name, phone, location, bio)
+// @route   PUT /api/users/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+    try {
+        console.log('updateUserProfile called for user:', req.user && req.user._id, 'body:', req.body);
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const { fullName, phone, location, bio } = req.body;
+
+        if (fullName !== undefined) user.fullName = fullName;
+        if (phone !== undefined) user.phone = phone;
+        if (location !== undefined) user.location = location;
+        if (bio !== undefined) user.bio = bio;
+
+        await user.save();
+
+        const saved = await User.findById(user._id).select('-password');
+
+        res.json({
+            _id: saved._id,
+            fullName: saved.fullName,
+            email: saved.email,
+            phone: saved.phone,
+            role: saved.role,
+            avatar: saved.avatar,
+            createdAt: saved.createdAt,
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -268,12 +352,67 @@ const completeLessonInCourse = async (req, res) => {
     }
 };
 
+// @desc    Upload profile photo
+// @route   POST /api/users/upload-photo
+// @access  Private
+const uploadPhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const result = await uploadToCloudinary(req.file.buffer, {
+      public_id: `profile_${user._id}_${Date.now()}`,
+      folder: "profile_photos",
+    });
+
+    user.avatar = result.secure_url;
+    await user.save();
+
+    res.json({
+      message: "Photo uploaded successfully",
+      avatar: result.secure_url,
+    });
+  } catch (error) {
+    console.log("Upload Error: ", error);
+    res.status(500).json({ message: "Failed to upload photo" });
+  }
+};
+
+// @desc    Get user streak
+// @route   GET /api/users/streak
+// @access  Private
+const getStreak = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('streakDays lastLoginDate');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({
+            streakDays: user.streakDays || 0,
+            lastLoginDate: user.lastLoginDate,
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
 module.exports = { 
     registerUser, 
     loginUser, 
     getUserProfile,
+    updateUserProfile,
     getProfileCourses,
     getStudentStats,
     getStudentCourses,
-    completeLessonInCourse
+    completeLessonInCourse,
+    uploadPhoto,
+    getStreak
 };

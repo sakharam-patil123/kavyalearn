@@ -67,6 +67,8 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     phone: { type: String },
+    bio: { type: String },
+    location: { type: String },
     address: {
       street: String,
       city: String,
@@ -76,6 +78,9 @@ const userSchema = new mongoose.Schema(
     },
     status: { type: String, enum: ['active', 'inactive'], default: 'active' },
     avatar: { type: String },
+    // Achievement streak system
+    lastLoginDate: { type: Date },
+    streakDays: { type: Number, default: 0 },
     // For parents: list of student ids
     children: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     // For instructors: assigned courses

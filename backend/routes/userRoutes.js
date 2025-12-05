@@ -1,11 +1,15 @@
 const express = require('express');
-const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
+const { registerUser, loginUser, getUserProfile, updateUserProfile, uploadPhoto, getStreak } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
+const upload = require('../middleware/multer');
 
 const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/profile', protect, getUserProfile);
+router.put('/profile', protect, updateUserProfile);
+router.post('/upload-photo', protect, upload.single('profilePhoto'), uploadPhoto);
+router.get('/streak', protect, getStreak);
 
 module.exports = router;

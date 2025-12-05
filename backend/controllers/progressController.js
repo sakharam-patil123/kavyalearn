@@ -59,33 +59,37 @@ exports.getProgressOverview = async (req, res) => {
 
     // Average quiz score across all attempts for this student
     let avgScore = 0;
-    const quizAgg = await Quiz.aggregate([
-      { $match: { 'attempts.student': userId } },
-      { $unwind: '$attempts' },
-      { $match: { 'attempts.student': userId } },
-      {
-        $project: {
-          percentage: {
-            $cond: [
-              { $gt: ['$totalMarks', 0] },
-              {
-                $multiply([
-                  { $divide: ['$attempts.score', '$totalMarks'] },
-                  100,
-                ]),
-              },
-              0,
-            ],
+
+const quizAgg = await Quiz.aggregate([
+  { $match: { 'attempts.student': userId } },
+  { $unwind: '$attempts' },
+  { $match: { 'attempts.student': userId } },
+
+  {
+    $project: {
+      percentage: {
+        $cond: [
+          { $gt: ['$totalMarks', 0] },
+          {
+            $multiply: [
+              { $divide: ['$attempts.score', '$totalMarks'] },
+              100
+            ]
           },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          avgPercentage: { $avg: '$percentage' },
-        },
-      },
-    ]);
+          0
+        ]
+      }
+    }
+  },
+
+  {
+    $group: {
+      _id: null,
+      avgPercentage: { $avg: '$percentage' }
+    }
+  }
+]);
+
 
     if (quizAgg && quizAgg.length > 0) {
       avgScore = Math.round(quizAgg[0].avgPercentage || 0);
