@@ -10,11 +10,8 @@ const enrollmentSchema = new mongoose.Schema({
   lastAccessed: { type: Date },
   grade: { type: String },
 <<<<<<< HEAD
-<<<<<<< HEAD
   feedback: { type: String }
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   feedback: { type: String },
   // Quiz tracking
   coursePerformance: { type: Number, default: 0 }, // 0-100% based on lesson completion
@@ -28,9 +25,6 @@ const enrollmentSchema = new mongoose.Schema({
     status: { type: String, enum: ['passed', 'failed'] },
     attemptedAt: { type: Date, default: Date.now }
   }]
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 }, { timestamps: true });
 

@@ -18,33 +18,13 @@ const StudentReport = () => {
   const [linkError, setLinkError] = useState('');
 
   useEffect(() => {
-<<<<<<< HEAD
     // Check if user is parent
     const userRole = localStorage.getItem('userRole');
     if (userRole !== 'parent') {
-=======
-    // Check if user is parent (robust: try explicit 'userRole' first, then fallback to stored `user` object)
-    let userRole = localStorage.getItem('userRole');
-    if (!userRole) {
-      try {
-        const stored = JSON.parse(localStorage.getItem('user'));
-        userRole = stored?.role || null;
-      } catch (e) {
-        userRole = null;
-      }
-    }
-
-    // If not a parent, redirect to dashboard. If role cannot be determined, don't redirect immediately — try fetching children once.
-    if (userRole && userRole !== 'parent') {
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
       navigate('/dashboard');
       return;
     }
 
-<<<<<<< HEAD
-=======
-    // Attempt to fetch children for parent (if any)
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     fetchChildren();
   }, [navigate]);
 

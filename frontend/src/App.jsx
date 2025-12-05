@@ -22,10 +22,6 @@ import AdminStudents from './pages/admin/AdminStudents';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminEnrollments from './pages/admin/AdminEnrollments';
 import AdminSettings from './pages/admin/AdminSettings';
-<<<<<<< HEAD
-=======
-import StudentReport from './pages/StudentReport';
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
 
 function Layout() {
@@ -81,10 +77,6 @@ function Layout() {
           <Route path="/admin/settings" element={<ProtectedRoute requireAdmin={true}><AdminSettings /></ProtectedRoute>} />
           <Route path="/subscription" element={<Subscription />}></Route>
           <Route path="/schedule" element={<Schedule />} />
-<<<<<<< HEAD
-=======
-          <Route path="/parent/student-report" element={<StudentReport />} />
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
           <Route path="/payment" element={<PaymentInterface />}></Route>
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/profile" element={<Profile />} />

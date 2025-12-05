@@ -1,9 +1,5 @@
 const Achievement = require('../models/achievementModel');
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-const User = require('../models/userModel');
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 const User = require('../models/userModel');
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
@@ -14,11 +10,8 @@ const asyncHandler = require('express-async-handler');
 // @access  Private (Admin)
 const createAchievement = asyncHandler(async (req, res) => {
 <<<<<<< HEAD
-<<<<<<< HEAD
     const { user, title, description, type, points, course } = req.body;
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     const { user, title, description, type, points, course, badge } = req.body;
 
     // Validate required fields
@@ -26,9 +19,6 @@ const createAchievement = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Missing required fields: user, title, description, type');
     }
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
     const achievement = await Achievement.create({
@@ -38,12 +28,7 @@ const createAchievement = asyncHandler(async (req, res) => {
         type,
         points,
 <<<<<<< HEAD
-<<<<<<< HEAD
         course
-=======
-        course,
-        badge: badge || 'Bronze'
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
         course,
         badge: badge || 'Bronze'
@@ -67,11 +52,8 @@ const getMyAchievements = asyncHandler(async (req, res) => {
         .sort('-dateEarned');
     
 <<<<<<< HEAD
-<<<<<<< HEAD
     res.json(achievements);
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     const totalPoints = achievements.reduce((sum, achievement) => sum + achievement.points, 0);
     
     res.json({
@@ -79,9 +61,6 @@ const getMyAchievements = asyncHandler(async (req, res) => {
         totalPoints,
         count: achievements.length
     });
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 });
 
@@ -91,21 +70,15 @@ const getMyAchievements = asyncHandler(async (req, res) => {
 const getRecentAchievements = asyncHandler(async (req, res) => {
     const achievements = await Achievement.find()
 <<<<<<< HEAD
-<<<<<<< HEAD
         .populate('user', 'name avatar')
         .populate('course', 'title')
         .sort('-dateEarned')
         .limit(5);
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
         .populate('user', 'name avatar email')
         .populate('course', 'title')
         .sort('-dateEarned')
         .limit(10);
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     
     res.json(achievements);
@@ -118,7 +91,6 @@ const getAchievementPoints = asyncHandler(async (req, res) => {
     const achievements = await Achievement.find({ user: req.user._id });
     const totalPoints = achievements.reduce((sum, achievement) => sum + achievement.points, 0);
 <<<<<<< HEAD
-<<<<<<< HEAD
     
     res.json({ points: totalPoints });
 });
@@ -128,8 +100,6 @@ const getAchievementPoints = asyncHandler(async (req, res) => {
 // @access  Private
 const getLeaderboard = asyncHandler(async (req, res) => {
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     const achievementCount = achievements.length;
     
     res.json({ 
@@ -150,19 +120,13 @@ const getLeaderboard = asyncHandler(async (req, res) => {
 const getLeaderboard = asyncHandler(async (req, res) => {
     const limit = req.query.limit || 20;
     
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     const leaderboard = await Achievement.aggregate([
         {
             $group: {
                 _id: '$user',
 <<<<<<< HEAD
-<<<<<<< HEAD
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 totalPoints: { $sum: '$points' },
                 achievementCount: { $sum: 1 }
             }
@@ -187,9 +151,6 @@ const getLeaderboard = asyncHandler(async (req, res) => {
         {
             $group: {
                 _id: '$user',
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 totalPoints: { $sum: '$points' }
             }
@@ -198,7 +159,6 @@ const getLeaderboard = asyncHandler(async (req, res) => {
             $sort: { totalPoints: -1 }
         },
         {
-<<<<<<< HEAD
 <<<<<<< HEAD
             $limit: 10
         }
@@ -213,8 +173,6 @@ const getLeaderboard = asyncHandler(async (req, res) => {
 
     res.json(leaderboard);
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
             $facet: {
                 rank: [
                     { $match: { _id: req.user._id } },
@@ -250,9 +208,6 @@ const getAchievementStats = asyncHandler(async (req, res) => {
         statsByType,
         recentAchievements: achievements.slice(-5)
     });
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 });
 
@@ -262,12 +217,7 @@ module.exports = {
     getRecentAchievements,
     getAchievementPoints,
 <<<<<<< HEAD
-<<<<<<< HEAD
     getLeaderboard
-=======
-    getLeaderboard,
-    getAchievementStats
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
     getLeaderboard,
     getAchievementStats

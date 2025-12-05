@@ -8,12 +8,8 @@ const {
     enrollInEvent,
     updateEvent,
 <<<<<<< HEAD
-<<<<<<< HEAD
     deleteEvent,
     setReminder
-=======
-    deleteEvent
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
     deleteEvent
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
@@ -27,10 +23,7 @@ router.route('/')
 router.get('/my-events', protect, getMyEvents);
 router.get('/upcoming', protect, getUpcomingEvents);
 <<<<<<< HEAD
-<<<<<<< HEAD
 router.post('/reminder', protect, setReminder); // ✅ Add reminder endpoint
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 router.post('/:id/enroll', protect, enrollInEvent);

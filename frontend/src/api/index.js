@@ -1,26 +1,3 @@
-<<<<<<< HEAD
-=======
-import axiosClient from './axiosClient';
-
-const api = {
-  // direct axios client for low-level calls
-  client: axiosClient,
-
-  // convenience wrappers used across the app
-  getCourses: () => axiosClient.get('/api/courses').then(res => res.data),
-  getQuizzes: (courseId) => axiosClient.get(`/api/quiz?courseId=${courseId}`).then(res => res.data),
-  createQuiz: (payload) => axiosClient.post('/api/quiz', payload).then(res => res.data),
-  submitQuiz: (quizId, answers) => axiosClient.post(`/api/quiz/${quizId}/submit`, { answers }).then(res => res.data),
-
-  // expose common axios methods
-  get: (url, config) => axiosClient.get(url, config),
-  post: (url, data, config) => axiosClient.post(url, data, config),
-  put: (url, data, config) => axiosClient.put(url, data, config),
-  delete: (url, config) => axiosClient.delete(url, config),
-};
-
-export default api;
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 const BASE = 'http://localhost:5000/api';
 
 function authHeaders() {
@@ -78,7 +55,6 @@ export async function aiQuery(courseId, query) {
   const res = await fetch(`${BASE}/ai/query`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ courseId, query }) });
   return res.json();
 }
-<<<<<<< HEAD
 
 export default {
   getCourses,
@@ -91,5 +67,3 @@ export default {
   createEvent,
   aiQuery
 };
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896

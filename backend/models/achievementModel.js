@@ -5,7 +5,6 @@ const achievementSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
 <<<<<<< HEAD
-<<<<<<< HEAD
         required: true
     },
     title: {
@@ -20,8 +19,6 @@ const achievementSchema = new mongoose.Schema({
         type: String,
         enum: ['Course Completion', 'Assessment Score', 'Participation', 'Special'],
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
         required: true,
         index: true
     },
@@ -38,15 +35,11 @@ const achievementSchema = new mongoose.Schema({
     type: {
         type: String,
         enum: ['Course Completion', 'Assessment Score', 'Participation', 'Special', 'Streak', 'Milestone'],
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
         required: true
     },
     points: {
         type: Number,
-<<<<<<< HEAD
 <<<<<<< HEAD
         default: 0
     },
@@ -54,8 +47,6 @@ const achievementSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course'
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
         default: 0,
         min: 0
     },
@@ -63,9 +54,6 @@ const achievementSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course',
         index: true
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     },
     icon: {
@@ -73,13 +61,10 @@ const achievementSchema = new mongoose.Schema({
         default: 'default-achievement.png'
     },
 <<<<<<< HEAD
-<<<<<<< HEAD
     dateEarned: {
         type: Date,
         default: Date.now
 =======
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     badge: {
         type: String,
         enum: ['Bronze', 'Silver', 'Gold', 'Platinum'],
@@ -93,9 +78,6 @@ const achievementSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
         index: true
-<<<<<<< HEAD
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
-=======
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
     }
 }, {
@@ -103,12 +85,6 @@ const achievementSchema = new mongoose.Schema({
 });
 
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-// Create compound index for user and dateEarned for faster queries
-achievementSchema.index({ user: 1, dateEarned: -1 });
-
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 // Create compound index for user and dateEarned for faster queries
 achievementSchema.index({ user: 1, dateEarned: -1 });

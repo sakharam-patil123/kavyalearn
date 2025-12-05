@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from "react";
-=======
-import React, { useState, useEffect } from "react";
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 import { jsPDF } from "jspdf";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -10,10 +6,6 @@ import "../assets/Courses.css";
 import AppLayout from "../components/AppLayout";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-=======
-import QuizModal from "../components/QuizModal";
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
 // ===================================
 // UTILITY HOOK FOR LOCAL STORAGE
@@ -1348,20 +1340,11 @@ export default function Courses() {
   const navigate = useNavigate();
   // `tab` holds the currently expanded section. null means all collapsed.
   const [tab, setTab] = useState(null);
-<<<<<<< HEAD
   const curriculumRef = useRef(null);
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   const [showInstructorForm, setShowInstructorForm] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showResourceForm, setShowResourceForm] = useState(false);
   const [showQuizForm, setShowQuizForm] = useState(false);
-<<<<<<< HEAD
-=======
-  // ✅ Quiz Modal States
-  const [showQuizModal, setShowQuizModal] = useState(false);
-  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState(null);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   // ✅ NEW: State for active quiz interface
   const [activeQuiz, setActiveQuiz] = useState(null);
   // State for active videos in different sections
@@ -1379,7 +1362,6 @@ export default function Courses() {
   const [coreConcepts] = useState(initialCoreConcepts);
   const [practicalApplications] = useState(initialPracticalApplications);
 
-<<<<<<< HEAD
   // Course metadata (defaults to 0 when not available)
   const [enrolledCount, setEnrolledCount] = useState(0);
   const [courseRating, setCourseRating] = useState(0);
@@ -1453,20 +1435,6 @@ export default function Courses() {
       }
     })();
   }, []);
-=======
-  // Enrollment and watched lessons state
-  // 'enrolled' controls whether the student can access lessons
-  const [enrolled, setEnrolled] = useLocalStorage("enrolled", false);
-  // Keep track of watched lesson titles to compute progress
-  // Initialize with the first two lessons (Review lessons) already watched
-  const [watchedLessons, setWatchedLessons] = useLocalStorage(
-    "watchedLessons",
-    [
-      "Introduction to the Course",
-      "Setting up Your Environment"
-    ]
-  );
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
   // Active lesson player state (for Practical Applications and new modules)
   const [activeLessonVideo, setActiveLessonVideo] = useState(null);
@@ -1517,15 +1485,7 @@ export default function Courses() {
 
   // Quiz Handlers
   const startQuizHandler = (quiz) => {
-<<<<<<< HEAD
     setActiveQuiz(quiz);
-=======
-    // Use the real course ID that has a quiz in the database
-    const courseId = quiz.courseId || quiz.id || '693122030225284c998ff8dd';
-    console.log('[Quiz Debug] Starting quiz:', { quiz, courseId });
-    setSelectedCourseForQuiz(courseId);
-    setShowQuizModal(true);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   };
 
   const endQuizHandler = (finalScore) => {
@@ -1603,14 +1563,8 @@ export default function Courses() {
   useEffect(() => {
     (async () => {
       try {
-<<<<<<< HEAD
         const res = await api.getCourses();
         if (res && res.courses) {
-=======
-        // Fetch courses from backend if available (use axios client exported as `api`)
-        const res = await api.get('/api/courses');
-        if (res && res.data && res.data.courses) {
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
           // Replace the student stat with live course count for visibility
           // This is minimal, non-intrusive integration to show backend data
           // If you want more, we can wire the whole curriculum to course data
@@ -1627,7 +1581,6 @@ export default function Courses() {
     })();
   }, []);
 
-<<<<<<< HEAD
   // Scroll curriculum into view whenever it's opened
   useEffect(() => {
     if (tab === "curriculum" && curriculumRef.current) {
@@ -1636,8 +1589,6 @@ export default function Courses() {
     }
   }, [tab]);
 
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   // Compute course progress based on watched lessons
   const totalLessons =
     gettingStarted.length +
@@ -1783,7 +1734,6 @@ export default function Courses() {
 
                     // Mark lesson as watched (persisted). Only add once.
                     if (lesson.title) {
-<<<<<<< HEAD
                       // persist per-user watched lessons
                       setWatchedLessons((prev) => {
                         const prevArr = Array.isArray(prev) ? prev : [];
@@ -1797,11 +1747,6 @@ export default function Courses() {
                         }
                         return updated;
                       });
-=======
-                      setWatchedLessons((prev) =>
-                        prev && prev.includes(lesson.title) ? prev : [...(prev || []), lesson.title]
-                      );
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                     }
                   }}
                 >
@@ -1839,7 +1784,6 @@ export default function Courses() {
                     alert("Please enroll in this course to continue learning.");
                     return;
                   }
-<<<<<<< HEAD
 
                   // Open curriculum tab
                   setTab("curriculum");
@@ -1889,53 +1833,22 @@ export default function Courses() {
                       setActiveLessonTitle(lesson.title);
                     }
                   }
-=======
-                  setHeroVideo("https://www.youtube.com/embed/tMHrpmJH5I8");
-                  setHeroTitle("Chemistry Fundamentals");
-                  setTab("curriculum");
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 }}
               >
                 <i className="bi bi-play-fill"></i> Continue Learning
               </button>
-<<<<<<< HEAD
               {/* Enroll Button: show only when not enrolled. Do not provide an Unenroll option. */}
               {!enrolled && (
-=======
-              {/* Enroll / Unenroll Button */}
-              {!enrolled ? (
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 <button
                   className="btn btn-learn d-flex align-items-center gap-2"
                   onClick={() => {
                     setEnrolled(true);
-<<<<<<< HEAD
                     // Do not clear watched lessons here; keep review defaults so progress is meaningful
-=======
-                    // reset watched lessons to ensure progress starts from zero
-                    setWatchedLessons([]);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                     alert("You are now enrolled. Start learning!");
                   }}
                 >
                   <i className="bi bi-person-plus"></i> Enroll
                 </button>
-<<<<<<< HEAD
-=======
-              ) : (
-                <button
-                  className="btn btn-outline-danger d-flex align-items-center gap-2"
-                  onClick={() => {
-                    // Allow manual unenroll for testing; clear watched lessons
-                    if (window.confirm("Unenroll from this course?")) {
-                      setEnrolled(false);
-                      setWatchedLessons([]);
-                    }
-                  }}
-                >
-                  <i className="bi bi-person-dash"></i> Unenroll
-                </button>
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
               )}
               <button
                 className="btn btn-download d-flex align-items-center gap-2"
@@ -2036,11 +1949,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <div className="stat-title">Students Enrolled</div>
-<<<<<<< HEAD
                   <div className="stat-value">{enrolledCount}</div>
-=======
-                  <div className="stat-value">12,456</div>
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 </div>
               </div>
             </div>
@@ -2071,11 +1980,7 @@ export default function Courses() {
                 </div>
                 <div>
                   <div className="stat-title">Course Rating</div>
-<<<<<<< HEAD
                   <div className="stat-value">{courseRating ? `${courseRating}/5.0` : '0/5.0'}</div>
-=======
-                  <div className="stat-value">4.8/5.0</div>
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 </div>
               </div>
             </div>
@@ -2190,11 +2095,7 @@ export default function Courses() {
         <div className="tab-content-wrap">
           {/* Curriculum tab */}
           {tab === "curriculum" && (
-<<<<<<< HEAD
             <div ref={curriculumRef} className="container-fluid p-0 mt-4">
-=======
-            <div className="container-fluid p-0 mt-4">
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
               {/* Add New Module UI removed per request */}
 
               {/* Module Panels */}
@@ -2529,26 +2430,6 @@ export default function Courses() {
             view more courses
           </button>
         </div>
-<<<<<<< HEAD
-=======
-
-        {/* Quiz Modal */}
-        {showQuizModal && selectedCourseForQuiz && (
-          <QuizModal
-            courseId={selectedCourseForQuiz}
-            onClose={() => {
-              console.log('[Quiz Debug] Closing quiz modal');
-              setShowQuizModal(false);
-              setSelectedCourseForQuiz(null);
-            }}
-            onSuccess={(result) => {
-              console.log('[Quiz Debug] Quiz submitted successfully:', result);
-              setShowQuizModal(false);
-              setSelectedCourseForQuiz(null);
-            }}
-          />
-        )}
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
       </div>
     </AppLayout>
   );

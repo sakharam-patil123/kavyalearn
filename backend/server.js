@@ -34,10 +34,6 @@ const aiTutorRoutes = require('./routes/aiTutorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const featureFlagRoutes = require('./routes/featureFlagRoutes');
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-const reportRoutes = require('./routes/reportRoutes');
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 const reportRoutes = require('./routes/reportRoutes');
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
@@ -57,11 +53,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/flags', featureFlagRoutes);
 
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
-app.use('/api/reports', reportRoutes);
-
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 app.use('/api/reports', reportRoutes);
 
@@ -90,11 +81,7 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 <<<<<<< HEAD
-<<<<<<< HEAD
 app.listen(PORT, () => {
-=======
-app.listen(PORT, '0.0.0.0', () => {
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 =======
 app.listen(PORT, '0.0.0.0', () => {
 >>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896

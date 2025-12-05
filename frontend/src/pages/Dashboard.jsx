@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import StatCard from "../components/StatCard";
 import { LuAward, LuBookOpen, LuClock4 } from "react-icons/lu";
 import { FaBell } from "react-icons/fa";
-=======
-import React, { useState, useEffect } from "react";
-import StatCard from "../components/StatCard";
-import { LuAward, LuBookOpen, LuClock4 } from "react-icons/lu";
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 import chatbot from "../assets/chatbot.png";
 import trophy from "../assets/leaderboard-trophy.png";
 import { FaArrowTrendUp } from "react-icons/fa6";
@@ -19,7 +13,6 @@ function Dashboard() {
   const [activeVideo, setActiveVideo] = useState(null);
   const [openChat, setOpenChat] = useState(false); // ✅ Chat state
   const [user, setUser] = useState(null);
-<<<<<<< HEAD
   const [totalCourses, setTotalCourses] = useState(0);
   const [hoursLearned, setHoursLearned] = useState(0);
   const [achievementsCount, setAchievementsCount] = useState(0);
@@ -32,8 +25,6 @@ function Dashboard() {
   const coursesContainerRef = useRef(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
   const [coursesExpanded, setCoursesExpanded] = useState(false);
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
   // ANNOUNCEMENTS
   const [announcements] = useState([
@@ -43,33 +34,11 @@ function Dashboard() {
     { text: "Exams scheduled for next week", link: "https://example.com/exams" },
   ]);
 
-<<<<<<< HEAD
   // UPCOMING CLASSES
   const upcoming = [
     { title: "Mathematics", date: "16 December 2025, 1:00 PM" },
     { title: "Physics", date: "20 December 2025, 10:00 AM" },
     { title: "Chemistry", date: "25 December 2025, 2:00 PM"},
-=======
-  // COURSES
-  const courses = [
-    { name: "Introduction to AI", progress: 0 },
-    { name: "Web Development", progress: 0 },
-    { name: "Data Structures", progress: 0 },
-  ];
-
-  // UPCOMING CLASSES
-  const upcoming = [
-    { title: "Mathematics", date: "March 16, 1:00 PM", link: "https://www.youtube.com/embed/UCdxT4d8k5c" },
-    { title: "Physics", date: "March 17, 10:00 AM", link: "https://www.youtube.com/embed/V76QPpoWVwA" },
-    { title: "Chemistry", date: "March 18, 2:00 PM", link: "https://www.youtube.com/embed/tMHrpmJH5I8" },
-  ];
-
-  // LEADERBOARD
-  const leaderboard = [
-    { name: "Deepak", score: 845 },
-    { name: "Shweta", score: 845 },
-    { name: "Rahul", score: 820 },
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   ];
 
   // ✅ Greeting passed to Header from Dashboard ONLY
@@ -89,7 +58,6 @@ function Dashboard() {
     // Lazy-load profile; use the app's API helper if available.
     async function loadProfile() {
       try {
-<<<<<<< HEAD
         const token = localStorage.getItem('token');
         if (!token) return;
 
@@ -215,20 +183,11 @@ function Dashboard() {
         }
       } catch (err) {
         console.warn('Could not load dashboard data', err);
-=======
-        const res = await fetch('/api/auth/profile', { headers: { 'Content-Type': 'application/json', Authorization: localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined } });
-        if (!res.ok) return;
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.warn('Could not load profile', err);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
       }
     }
     loadProfile();
   }, []);
 
-<<<<<<< HEAD
   // Measure if the courses list overflows the visible container so we can show/hide "View All"
   useLayoutEffect(() => {
     const el = coursesContainerRef.current;
@@ -297,21 +256,13 @@ function Dashboard() {
     }
   };
 
-=======
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
   return (
     <AppLayout showGreeting={true} greetingContent={greeting}>
       {/* ============ STAT CARDS ============ */}
       <div className="stats">
-<<<<<<< HEAD
         <StatCard title="Total Courses" value={totalCourses} color2="#1D3E69" color1="#397ACF" IconComponent={LuBookOpen} />
         <StatCard title="Hours Learned" value={hoursLearned} color1="#35AAAD" color2="#2B73B0" IconComponent={LuClock4} />
         <StatCard title="Achievements" value={achievementsCount} color1="#46BA7D" color2="#3CB49F" IconComponent={LuAward} />
-=======
-        <StatCard title="Total Courses" value="12" color2="#1D3E69" color1="#397ACF" IconComponent={LuBookOpen} />
-        <StatCard title="Hours Learned" value="124" color1="#35AAAD" color2="#2B73B0" IconComponent={LuClock4} />
-        <StatCard title="Achievements" value="8" color1="#46BA7D" color2="#3CB49F" IconComponent={LuAward} />
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
       </div>
 
       {/* ============ ANNOUNCEMENTS SCROLL ============ */}
@@ -333,7 +284,6 @@ function Dashboard() {
           <div className="card" style={{ borderRadius: "15px", height: "295px" }}>
             <div className="card-header bg-white" style={{ borderColor: "white" }}>
               <h3 className="fw-normal">Your Courses</h3>
-<<<<<<< HEAD
               {/* Show View All only when there are enrolled courses and the list overflows the visible area */}
               {enrolledCourses && enrolledCourses.length > 0 && isOverflowing && (
                 <button
@@ -373,21 +323,6 @@ function Dashboard() {
                 <p>No courses enrolled yet. Start learning today!</p>
               </div>
             )}
-=======
-              <button className="view-btn">View All</button>
-            </div>
-            {courses.map((course) => (
-              <div key={course.name} className="progress-item">
-                <div className="label">
-                  <span>{course.name}</span>
-                  <span>{course.progress}%</span>
-                </div>
-                <div className="progress-bar-dash">
-                  <div className="progress-fill" style={{ width: `${course.progress}%` }} />
-                </div>
-              </div>
-            ))}
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
           </div>
 
           {/* UPCOMING LIVE CLASSES */}
@@ -399,7 +334,6 @@ function Dashboard() {
                   <h3 style={{ fontSize: "18px" }}>{u.title}</h3>
                   <p>{u.date}</p>
                 </div>
-<<<<<<< HEAD
                 <button 
                   style={{ 
                     fontSize: "16px",
@@ -434,10 +368,6 @@ function Dashboard() {
                 >
                   <FaBell size={16} />
                   {reminders[u.title] ? 'Reminded' : 'Remind'}
-=======
-                <button style={{ fontSize: "14px" }} onClick={() => setActiveVideo(u.link)}>
-                  Join
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
                 </button>
               </div>
             ))}
@@ -491,7 +421,6 @@ function Dashboard() {
           <div className="card recent-achievements" style={{ borderRadius: "15px" }}>
             <h3>Recent Achievements</h3>
             <ul className="achievement-ul">
-<<<<<<< HEAD
               {/* Display user's earned badges first */}
               {earnedBadges && earnedBadges.length > 0 && (
                 earnedBadges.map((badge) => (
@@ -539,22 +468,6 @@ function Dashboard() {
                   </>
                 )
               )}
-=======
-              <li className="achievement-li">
-                <FaArrowTrendUp style={{ marginRight: "8px" }} />
-                <div>
-                  <h4 className="achievement fw-normal">Fast Learner</h4>
-                  <p className="achievement-p">Completed 5 courses in 30 days</p>
-                </div>
-              </li>
-              <li className="achievement-li">
-                <LuClock4 style={{ marginRight: "8px" }} />
-                <div>
-                  <h4 className="achievement fw-normal">Perfect Attendance</h4>
-                  <p className="achievement-p">100% attendance this month</p>
-                </div>
-              </li>
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
             </ul>
           </div>
         </div>

@@ -32,10 +32,6 @@ export default function Leaderboard() {
   const [achievementsHover, setAchievementsHover] = useState(false);
   const [challengeHover, setChallengeHover] = useState(false);
   const [motivationHover, setMotivationHover] = useState(false);
-<<<<<<< HEAD
-=======
-  const [error, setError] = useState(null);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
   const interactiveStyle = {
     transition: "all 0.3s ease-in-out",
@@ -61,7 +57,6 @@ export default function Leaderboard() {
   useEffect(() => {
     async function loadLeaderboard() {
       setLoading(true);
-<<<<<<< HEAD
       try {
         const res = await fetch('/api/achievements/leaderboard', {
           headers: {
@@ -69,26 +64,13 @@ export default function Leaderboard() {
             Authorization: localStorage.getItem('token')
               ? `Bearer ${localStorage.getItem('token')}`
               : undefined,
-=======
-      setError(null);
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/achievements/leaderboard?limit=50', {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
           },
         });
 
         if (!res.ok) {
-<<<<<<< HEAD
           console.warn('Failed to fetch leaderboard');
           setLoading(false);
           return;
-=======
-          throw new Error(`Failed to fetch leaderboard: ${res.statusText}`);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
         }
 
         const data = await res.json();
@@ -97,19 +79,11 @@ export default function Leaderboard() {
         setMyRank(data.myRank || null);
       } catch (err) {
         console.error('Error loading leaderboard', err);
-<<<<<<< HEAD
-=======
-        setError(err.message || 'Failed to load leaderboard');
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
       }
       setLoading(false);
     }
     loadLeaderboard();
-<<<<<<< HEAD
   }, []);
-=======
-  }, [activeTab]);
->>>>>>> 19dc9f140fa0fd2e9caea30caaaf5389cd158896
 
   const renderLeaderboardContent = () => {
     const streakAchievement = achievements.find(
