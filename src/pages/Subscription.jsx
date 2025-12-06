@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Star, Clock, ChevronRight, Users } from "lucide-react";
 import "../assets/Subscription.css";
 import AppLayout from "../components/AppLayout";
 import { useNavigate } from "react-router-dom"; // <-- Added
+import axios from "axios";
 
-// Courses Data
-const courses = [
+// Default Courses Data (used as fallback when backend not available)
+const initialCourses = [
   {
     id: 1,
+    _id: '64a1f5e2b6c4a2d1f0e9b001',
     title: "Complete Ethical Hacking Course",
     language: "English",
     image: "ethical-hacking",
@@ -75,6 +77,7 @@ const courses = [
   },
   {
     id: 2,
+    _id: '64a1f5e2b6c4a2d1f0e9b002',
     title: "Advanced Networking with CISCO (CCNA)",
     language: "English",
     image: "networking",
@@ -132,6 +135,7 @@ const courses = [
   },
   {
     id: 3,
+    _id: '64a1f5e2b6c4a2d1f0e9b003',
     title: "Cyber Forensics Masterclass with Hands on learning",
     language: "English",
     image: "forensics",
@@ -189,6 +193,7 @@ const courses = [
   },
   {
     id: 4,
+    _id: '64a1f5e2b6c4a2d1f0e9b004',
     title: "Computer Networking Course",
     language: "English",
     image: "computer-network",
@@ -247,6 +252,7 @@ const courses = [
   },
   {
     id: 5,
+    _id: '64a1f5e2b6c4a2d1f0e9b005',
     title: "Computer Hardware",
     language: "English",
     image: "hardware",
@@ -372,14 +378,14 @@ function CourseCard({ course, onEnroll }) {
 }
 
 // CourseListing Component
-function CourseListing({ onCourseSelect }) {
+function CourseListing({ courses, onCourseSelect }) {
   return (
     <div className="course-listing">
       <div className="course-listing-container">
         <div className="course-grid">
           {courses.map((course) => (
             <CourseCard
-              key={course.id}
+              key={course._id || course.id}
               course={course}
               onEnroll={onCourseSelect}
             />
@@ -406,11 +412,46 @@ function CourseDetail({ course, onBack }) {
 
   const [showFullDesc, setShowFullDesc] = useState(false);
 
-  const handlePayNow = () => {
+  const handlePayNow = async () => {
     if (
       window.confirm(`Are you sure you want to purchase "${course.title}"?`)
     ) {
-      navigate("/payment"); // <-- FIX: Redirect to payment page
+      try {
+        // Create a pending enrollment first
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please login first');
+          return;
+        }
+
+        const courseIdToUse = course._id || course.id;
+        const enrollmentRes = await axios.post(
+          '/api/enrollments/create',
+          { courseId: courseIdToUse },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Store courseId and enrollmentId in localStorage for payment page
+        localStorage.setItem('currentCourseId', courseIdToUse);
+        localStorage.setItem('currentEnrollmentId', enrollmentRes.data.enrollmentId);
+
+        // Redirect to payment page
+        navigate("/payment"); // <-- FIX: Redirect to payment page
+      } catch (error) {
+          console.error('Failed to create enrollment:', error?.response?.data || error.message);
+          // If the backend reports an existing enrollmentId in the 400 response,
+          // reuse it and proceed to payment page (idempotent behavior).
+          const enrollmentId = error?.response?.data?.enrollmentId;
+          if (enrollmentId) {
+            const courseIdToUse = course._id || course.id;
+            localStorage.setItem('currentCourseId', courseIdToUse);
+            localStorage.setItem('currentEnrollmentId', enrollmentId);
+            navigate('/payment');
+            return;
+          }
+
+          alert('Failed to initiate enrollment. Please try again.');
+      }
     }
   };
 
@@ -576,6 +617,24 @@ function CourseDetail({ course, onBack }) {
 // Main App Component
 function Subscription() {
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [coursesList, setCoursesList] = useState(initialCourses);
+
+  // Try to fetch real courses from backend and use their _id values
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await axios.get('/api/courses');
+        if (res && res.data && Array.isArray(res.data) && mounted) {
+          setCoursesList(res.data);
+        }
+      } catch (err) {
+        // keep fallback initialCourses on error
+        console.warn('Could not load courses from backend, using fallback data');
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
@@ -591,7 +650,7 @@ function Subscription() {
         {selectedCourse ? (
           <CourseDetail course={selectedCourse} onBack={handleBack} />
         ) : (
-          <CourseListing onCourseSelect={handleCourseSelect} />
+          <CourseListing courses={coursesList} onCourseSelect={handleCourseSelect} />
         )}
       </div>
     </AppLayout>

@@ -10,6 +10,7 @@ import {
   LuGalleryHorizontalEnd,
 } from "react-icons/lu";
 import { TbReportAnalytics } from "react-icons/tb";
+import { MdSchool } from "react-icons/md";
 import logo from "../assets/logo.png";
 
 function Sidebar({ isOpen, setIsOpen }) {
@@ -38,19 +39,39 @@ function Sidebar({ isOpen, setIsOpen }) {
   }, [setIsOpen]);
 
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <FiHome /> },
-    { path: "/courses", label: "Courses", icon: <FiBookOpen /> },
+    // Show Dashboard and Courses only for non-instructor users
+    ...(userRole !== 'instructor' ? [
+      { path: "/dashboard", label: "Dashboard", icon: <FiHome /> },
+      { path: "/courses", label: "Courses", icon: <FiBookOpen /> },
+    ] : []),
+    
+    // Admin items
     ...(userRole === 'admin' || userRole === 'sub-admin' ? [
       { path: "/admin/dashboard", label: "Admin Dashboard", icon: <TbReportAnalytics /> },
       { path: "/admin/students", label: "Manage Students", icon: <LuUser /> },
       { path: "/admin/courses", label: "Manage Courses", icon: <FiBookOpen /> },
       { path: "/admin/settings", label: "Admin Settings", icon: <TbReportAnalytics /> },
     ] : []),
+    
+    // Instructor items
+    ...(userRole === 'instructor' ? [
+      { type: 'section', label: 'Instructor Panel' },
+      { path: "/instructor/dashboard", label: "Dashboard", icon: <FiHome /> },
+      { path: "/instructor/courses", label: "My Courses", icon: <FiBookOpen /> },
+      { path: "/instructor/students", label: "Students", icon: <LuUser /> },
+      { path: "/instructor/lessons", label: "Manage Lessons", icon: <FiBookOpen /> },
+      { path: "/instructor/analytics", label: "Analytics", icon: <TbReportAnalytics /> },
+    ] : []),
+    
+    // Subscriptions, Schedule, Leaderboard, Profile - shown to all users
     {
       path: "/subscription",
       label: "Subscriptions",
       icon: <LuGalleryHorizontalEnd />,
     },
+    ...(userRole === 'parent' ? [
+      { path: "/parent/student-report", label: "Student Reports", icon: <MdSchool /> }
+    ] : []),
     { path: "/schedule", label: "Schedule", icon: <LuCalendar /> },
     { path: "/leaderboard", label: "Leaderboard", icon: <LuTrophy /> },
     { path: "/profile", label: "Profile", icon: <LuUser /> },
@@ -98,19 +119,36 @@ function Sidebar({ isOpen, setIsOpen }) {
           </div>
 
           <nav>
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
-                onClick={() => isMobile && setIsOpen(false)}
-              >
-                <span className="nav-icon">{item.icon}</span>
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              if (item.type === 'section') {
+                return (
+                  <div key={item.label} style={{
+                    padding: '12px 16px 8px',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    color: '#999',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginTop: '8px',
+                  }}>
+                    {item.label}
+                  </div>
+                );
+              }
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    isActive ? "nav-link active" : "nav-link"
+                  }
+                  onClick={() => isMobile && setIsOpen(false)}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  {item.label}
+                </NavLink>
+              );
+            })}
           </nav>
         </div>
       </aside>

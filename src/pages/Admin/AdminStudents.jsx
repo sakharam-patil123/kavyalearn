@@ -8,7 +8,7 @@ import CreateUserModal from "../../components/CreateUserModal";
 const AdminStudents = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const loadStudents = async () => {
     try {
@@ -31,6 +31,41 @@ const AdminStudents = () => {
 
   return (
     <AppLayout showGreeting={false}>
+      {/* FORM SECTION */}
+      {showForm && (
+        <div style={{
+          background: '#fff',
+          borderRadius: '15px',
+          padding: '30px',
+          marginBottom: '30px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h3>Add New Student</h3>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowForm(false)}
+              style={{ padding: '8px 16px' }}
+            >
+              ✕ Close
+            </button>
+          </div>
+          <CreateUserModal
+            isOpen={true}
+            onClose={() => setShowForm(false)}
+            onSuccess={() => {
+              loadStudents();
+              setShowForm(false);
+            }}
+          />
+        </div>
+      )}
+
       {/* HEADER */}
       <div
         style={{
@@ -41,16 +76,10 @@ const AdminStudents = () => {
         }}
       >
         <h2>Student Management</h2>
-        <button className="btn btn-primary" onClick={() => setModalOpen(true)}>
-          Add Student
+        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+          {showForm ? "Hide Form" : "Add Student"}
         </button>
       </div>
-
-      <CreateUserModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSuccess={loadStudents}
-      />
 
       {/* STUDENT TABLE */}
       <table className="table table-bordered">

@@ -55,7 +55,8 @@ function Registration() {
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("role", data.user.role);
 
-      navigate("/dashboard");
+      // Redirect to Sign In page
+      navigate("/");
     } catch (err) {
       setError("Connection error. Please try again.");
       setLoading(false);

@@ -6,100 +6,12 @@ import {
   Award,
   Star,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/leaderboard.css";
 import AppLayout from "../components/AppLayout";
 
-// --- Static Data (unchanged) ---
-const topPerformers = [
-  { rank: 2, name: "Shweta", points: 2845, initials: "SS", color: "#3b6ea5" },
-  { rank: 1, name: "Deepak", points: 2845, initials: "DK", color: "#1e3a5f" },
-  { rank: 3, name: "Rahul", points: 2820, initials: "RV", color: "#4ca89a" },
-];
-
-const fullRankings = [
-  {
-    rank: 1,
-    name: "Deepak Kumar",
-    initials: "DK",
-    points: 2845,
-    courses: 12,
-    avg: 95,
-    streak: 45,
-    trend: "up",
-  },
-  {
-    rank: 2,
-    name: "Shweta Sharma",
-    initials: "SS",
-    points: 2845,
-    courses: 11,
-    avg: 94,
-    streak: 42,
-    trend: "up",
-  },
-  {
-    rank: 3,
-    name: "Rahul Verma",
-    initials: "RV",
-    points: 2820,
-    courses: 10,
-    avg: 93,
-    streak: 38,
-    trend: "down",
-  },
-  {
-    rank: 4,
-    name: "Priya Patel",
-    initials: "PP",
-    points: 2780,
-    courses: 11,
-    avg: 92,
-    streak: 35,
-    trend: "up",
-  },
-  {
-    rank: 5,
-    name: "Amit Singh",
-    initials: "AS",
-    points: 2750,
-    courses: 9,
-    avg: 91,
-    streak: 32,
-    trend: "up",
-  },
-  {
-    rank: 6,
-    name: "Neha Gupta",
-    initials: "NG",
-    points: 2720,
-    courses: 10,
-    avg: 90,
-    streak: 30,
-    trend: "up",
-  },
-  {
-    rank: 7,
-    name: "Vikram Rao",
-    initials: "VR",
-    points: 2690,
-    courses: 8,
-    avg: 89,
-    streak: 28,
-    trend: "up",
-  },
-  {
-    rank: 8,
-    name: "Ananya Reddy",
-    initials: "AR",
-    points: 2650,
-    courses: 9,
-    avg: 88,
-    streak: 25,
-    trend: "down",
-  },
-];
+// we'll populate leaderboard from API
 
 const achievements = [
   { icon: Crown, label: "Top Performer", color: "#fbbf24" },
@@ -138,6 +50,41 @@ export default function Leaderboard() {
 
   const navigate = useNavigate();
 
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [myRank, setMyRank] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadLeaderboard() {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/achievements/leaderboard', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: localStorage.getItem('token')
+              ? `Bearer ${localStorage.getItem('token')}`
+              : undefined,
+          },
+        });
+
+        if (!res.ok) {
+          console.warn('Failed to fetch leaderboard');
+          setLoading(false);
+          return;
+        }
+
+        const data = await res.json();
+        // API returns { leaderboard, myRank }
+        setLeaderboard(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+        setMyRank(data.myRank || null);
+      } catch (err) {
+        console.error('Error loading leaderboard', err);
+      }
+      setLoading(false);
+    }
+    loadLeaderboard();
+  }, []);
+
   const renderLeaderboardContent = () => {
     const streakAchievement = achievements.find(
       (a) => a.label === "Consistent"
@@ -166,46 +113,61 @@ export default function Leaderboard() {
               <h2 className="section-title">Top Performers</h2>
 
               <div className="podium">
-                {topPerformers.map((performer) => (
-                  <div
-                    key={performer.rank}
-                    className={`podium-item podium-rank-${performer.rank}`}
-                    onClick={() => navigate('/profile', { state: { user: performer } })}
-                    style={{ cursor: 'pointer' }}
-                  >
+                {leaderboard.slice(0, 3).map((item, idx) => {
+                  const performer = {
+                    rank: idx + 1,
+                    name: item._id?.name || 'Unknown',
+                    points: item.totalPoints || 0,
+                    initials: (item._id?.name || 'U')
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase(),
+                    color: ['#1e3a5f', '#3b6ea5', '#4ca89a'][idx] || '#3b6ea5'
+                  };
+
+                  return (
                     <div
-                      className="podium-avatar"
-                      style={{ backgroundColor: performer.color }}
+                      key={performer.rank}
+                      className={`podium-item podium-rank-${performer.rank}`}
+                      onClick={() => navigate('/profile', { state: { user: item._id } })}
+                      style={{ cursor: 'pointer' }}
                     >
-                      {performer.rank === 1 && (
-                        <Crown
-                          className="crown-icon"
-                          size={24}
-                          style={{ marginBottom: "8px" }}
-                        />
-                      )}
-                      <span
-                        className={`rank-number ${
-                          performer.rank === 1 ? "rank-number-1st" : ""
-                        }`}
+                      <div
+                        className="podium-avatar"
+                        style={{ backgroundColor: performer.color }}
                       >
-                        {performer.rank === 1
-                          ? "1st"
-                          : performer.rank === 2
-                          ? "2nd"
-                          : "3rd"}
-                      </span>
+                        {performer.rank === 1 && (
+                          <Crown
+                            className="crown-icon"
+                            size={24}
+                            style={{ marginBottom: "8px" }}
+                          />
+                        )}
+                        <span
+                          className={`rank-number ${
+                            performer.rank === 1 ? "rank-number-1st" : ""
+                          }`}
+                        >
+                          {performer.rank === 1
+                            ? "1st"
+                            : performer.rank === 2
+                            ? "2nd"
+                            : "3rd"}
+                        </span>
+                      </div>
+
+                      <div className="podium-name">{performer.name}</div>
+                      <div className="podium-points">{performer.points} pts</div>
+
+                      <div
+                        className="podium-bar"
+                        style={{ backgroundColor: performer.color }}
+                      ></div>
                     </div>
-
-                    <div className="podium-name">{performer.name}</div>
-                    <div className="podium-points">{performer.points} pts</div>
-
-                    <div
-                      className="podium-bar"
-                      style={{ backgroundColor: performer.color }}
-                    ></div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -222,65 +184,86 @@ export default function Leaderboard() {
               <h2 className="section-title">Full Rankings</h2>
 
               <div className="rankings-list">
-                {fullRankings.map((user) => (
-                  <div
-                    key={user.rank}
-                    className={`ranking-item ${
-                      selectedRank === user.rank ? "ranking-selected" : ""
-                    }`}
-                    style={
-                      selectedRank === user.rank
-                        ? { border: "1px solid black" }
-                        : {}
-                    }
-                    onClick={() => {
-                      setSelectedRank(user.rank);
-                      navigate('/profile', { state: { user } });
-                    }}
-                  >
-                    <div className="ranking-rank">{user.rank}</div>
+                {leaderboard.map((item, index) => {
+                  const name = item._id?.name || 'Unknown';
+                  const initials = name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase();
 
+                  const userRow = {
+                    rank: index + 1,
+                    name,
+                    initials,
+                    points: item.totalPoints || 0,
+                    courses: 0,
+                    avg: 0,
+                    streak: 0,
+                    trend: 'up'
+                  };
+
+                  return (
                     <div
-                      className="ranking-avatar"
-                      style={{
-                        backgroundColor:
-                          user.rank === 1
-                            ? "#1e3a5f"
-                            : user.rank === 2
-                            ? "#3b6ea5"
-                            : user.rank === 3
-                            ? "#4ca89a"
-                            : "#3b6ea5",
+                      key={index}
+                      className={`ranking-item ${
+                        selectedRank === userRow.rank ? "ranking-selected" : ""
+                      }`}
+                      style={
+                        selectedRank === userRow.rank
+                          ? { border: "1px solid black" }
+                          : {}
+                      }
+                      onClick={() => {
+                        setSelectedRank(userRow.rank);
+                        navigate('/profile', { state: { user: item._id } });
                       }}
                     >
-                      {user.initials}
-                    </div>
+                      <div className="ranking-rank">{userRow.rank}</div>
 
-                    <div className="ranking-info">
-                      <div className="ranking-name">{user.name}</div>
-
-                      <div className="ranking-stats">
-                        {user.courses} courses · {user.avg}% avg ·{" "}
-                        <StreakIcon size={14} style={{ color: streakColor }} />{" "}
-                        {user.streak} day streak
+                      <div
+                        className="ranking-avatar"
+                        style={{
+                          backgroundColor:
+                            userRow.rank === 1
+                              ? "#1e3a5f"
+                              : userRow.rank === 2
+                              ? "#3b6ea5"
+                              : userRow.rank === 3
+                              ? "#4ca89a"
+                              : "#3b6ea5",
+                        }}
+                      >
+                        {userRow.initials}
                       </div>
+
+                      <div className="ranking-info">
+                        <div className="ranking-name">{userRow.name}</div>
+
+                        <div className="ranking-stats">
+                          {userRow.courses} courses · {userRow.avg}% avg ·{' '}
+                          <StreakIcon size={14} style={{ color: streakColor }} />{' '}
+                          {userRow.streak} day streak
+                        </div>
+                      </div>
+
+                      <div className="ranking-points">{userRow.points}</div>
+
+                      {userRow.trend === "up" ? (
+                        <TrendingUp
+                          className="ranking-trend trend-up"
+                          size={20}
+                        />
+                      ) : (
+                        <TrendingDown
+                          className="ranking-trend trend-down"
+                          size={20}
+                        />
+                      )}
                     </div>
-
-                    <div className="ranking-points">{user.points}</div>
-
-                    {user.trend === "up" ? (
-                      <TrendingUp
-                        className="ranking-trend trend-up"
-                        size={20}
-                      />
-                    ) : (
-                      <TrendingDown
-                        className="ranking-trend trend-down"
-                        size={20}
-                      />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -303,24 +286,24 @@ export default function Leaderboard() {
               </div>
 
               <div className="your-ranking-badge">
-                <div className="ranking-circle">1</div>
+                <div className="ranking-circle">{myRank ? myRank.rank : '-'}</div>
               </div>
 
-              <div className="your-ranking-points">2,845</div>
+              <div className="your-ranking-points">{myRank ? myRank.totalPoints : '-'}</div>
               <div className="your-ranking-label">Total Points</div>
 
               <div className="your-ranking-stats">
                 <div className="stat-row">
                   <span>Courses Completed</span>
-                  <span className="stat-value">12</span>
+                  <span className="stat-value">{myRank?.coursesCompleted ?? '-'}</span>
                 </div>
                 <div className="stat-row">
                   <span>Average Score</span>
-                  <span className="stat-value">95%</span>
+                  <span className="stat-value">{myRank?.avgScore ? myRank.avgScore + '%' : '-'}</span>
                 </div>
                 <div className="stat-row">
                   <span>Current Streak</span>
-                  <span className="stat-value">45 days</span>
+                  <span className="stat-value">{myRank?.streak ? myRank.streak + ' days' : '-'}</span>
                 </div>
               </div>
             </div>

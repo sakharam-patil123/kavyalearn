@@ -54,6 +54,10 @@ function LoginPage() {
       // Redirect based on role
       if (data.role === 'admin' || data.role === 'sub-admin') {
         navigate("/admin/dashboard");
+      } else if (data.role === 'instructor') {
+        navigate("/instructor/dashboard");
+      } else if (data.role === 'student') {
+        navigate("/dashboard");
       } else {
         navigate("/dashboard");
       }

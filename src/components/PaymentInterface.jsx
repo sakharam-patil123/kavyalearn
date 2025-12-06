@@ -223,23 +223,46 @@ const PaymentInterface = () => {
       const res = await axios.post('/api/ai/process-payment', payload);
       const txId = res.data?.txId;
 
-      // persist to backend payments if user token exists
-      try {
-        const token = localStorage.getItem('token');
-        const amountNumeric = (payload.amount || '₹0').toString().replace(/[^0-9.]/g, '') || '0';
-        if (token) {
-          await axios.post('/api/payments', {
-            courseId: localStorage.getItem('currentCourseId') || null,
+      // Get courseId from localStorage (set when navigating to payment page)
+      const courseId = localStorage.getItem('currentCourseId');
+      const enrollmentId = localStorage.getItem('currentEnrollmentId');
+      const token = localStorage.getItem('token');
+      const amountNumeric = (payload.amount || '₹0').toString().replace(/[^0-9.]/g, '') || '0';
+
+      // 1. Create payment in backend only if we have both a token and a courseId
+      if (token && courseId) {
+        try {
+          const paymentRes = await axios.post('/api/payments', {
+            courseId: courseId,
             amount: Number(amountNumeric),
             paymentMethod: payload.method || 'unknown',
             transactionId: txId
           }, { headers: { Authorization: `Bearer ${token}` } });
+
+          // 2. Activate enrollment after successful payment
+          if (enrollmentId && paymentRes.data._id) {
+            try {
+              await axios.post(
+                `/api/enrollments/activate/${enrollmentId}`,
+                { paymentId: paymentRes.data._id },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              console.log('Enrollment activated successfully');
+            } catch (enrollmentErr) {
+              console.error('Enrollment activation failed:', enrollmentErr?.response?.data || enrollmentErr.message);
+            }
+          }
+        } catch (err) {
+          console.warn('Could not persist payment to backend:', err?.response?.data || err.message);
         }
-      } catch (err) {
-        console.warn('Could not persist payment to backend:', err?.response?.data || err.message);
+      } else {
+        if (!token) console.warn('Skipping backend payment persist: missing auth token');
+        if (!courseId) console.warn('Skipping backend payment persist: missing courseId in localStorage');
       }
 
+      // Show success toast and auto-redirect after short delay
       setState(s => ({ ...s, processing: false, showSuccess: true, confirmDetails: { ...payload.details, txId } }));
+      // Auto close/redirect will be handled in effect below
     } catch (err) {
       console.error('Payment error', err?.response?.data || err.message);
       alert('Payment failed. Please try again.');
@@ -249,6 +272,7 @@ const PaymentInterface = () => {
 
   const handleCloseSuccess = () => {
     // reset form to initial state and close success popup
+    const courseId = localStorage.getItem('currentCourseId');
     setState({
       paymentMethod: "cards",
       cardNumber: "",
@@ -266,7 +290,29 @@ const PaymentInterface = () => {
       showSuccess: false,
       confirmDetails: null,
     });
+    
+    // Clear localStorage
+    localStorage.removeItem('currentCourseId');
+    localStorage.removeItem('currentEnrollmentId');
+    
+    // Redirect to course if courseId exists (using query param), otherwise go back to subscription
+    if (courseId) {
+      try { window.localStorage.setItem('justPaid', '1'); } catch (e) {}
+      navigate(`/courses?id=${courseId}`);
+    } else {
+      navigate('/subscription');
+    }
   };
+
+  // Auto-redirect when payment success shown
+  React.useEffect(() => {
+    if (state.showSuccess) {
+      const timer = setTimeout(() => {
+        handleCloseSuccess();
+      }, 2200);
+      return () => clearTimeout(timer);
+    }
+  }, [state.showSuccess]);
 
   return (
     <AppLayout showGreeting={false}>
@@ -540,18 +586,17 @@ const PaymentInterface = () => {
                   </div>
                 )}
 
-                {/* Success popup */}
+                {/* Success toast (small, auto-dismiss) */}
                 {state.showSuccess && (
-                  <div className="success-overlay">
-                    <div className="success-popup">
-                      <div className="success-check">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M20 6L9 17l-5-5" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                  <div className="payment-success-toast" aria-live="polite">
+                    <div className="toast-content">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width={20} height={20}>
+                        <path d="M20 6L9 17l-5-5" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <div style={{ marginLeft: 8 }}>
+                        <div style={{ fontWeight: 600 }}>Payment Successful</div>
+                        <div style={{ fontSize: 13 }}>{`You paid ${state.confirmDetails?.amount || '₹519'}. Redirecting...`}</div>
                       </div>
-                      <h3>Payment Successful</h3>
-                      <p>Your payment of {state.confirmDetails?.amount || '₹519'} was successful.</p>
-                      <button onClick={handleCloseSuccess}>Close</button>
                     </div>
                   </div>
                 )}

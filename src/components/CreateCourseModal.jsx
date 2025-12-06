@@ -24,35 +24,23 @@ const CreateCourseModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal d-block" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Create Course</h5>
-            <button type="button" className="btn-close" onClick={onClose}></button>
-          </div>
-          <div className="modal-body">
-            <form onSubmit={handleSubmit}>
-              <input type="text" name="title" placeholder="Course Title" value={formData.title} onChange={handleChange} required className="form-control mb-3" />
-              <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} className="form-control mb-3"></textarea>
-              <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required className="form-control mb-3" />
-              <select name="level" value={formData.level} onChange={handleChange} className="form-control mb-3">
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-              <input type="number" name="durationHours" placeholder="Duration (hours)" value={formData.durationHours} onChange={handleChange} className="form-control mb-3" />
-              <select name="status" value={formData.status} onChange={handleChange} className="form-control mb-3">
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="archived">Archived</option>
-              </select>
-              <button type="submit" className="btn btn-primary w-100">Create</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+      <input type="text" name="title" placeholder="Course Title" value={formData.title} onChange={handleChange} required className="form-control" style={{ gridColumn: '1 / -1' }} />
+      <textarea name="description" placeholder="Description" value={formData.description} onChange={handleChange} className="form-control" style={{ gridColumn: '1 / -1', minHeight: '100px' }}></textarea>
+      <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required className="form-control" />
+      <select name="level" value={formData.level} onChange={handleChange} className="form-control">
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+      </select>
+      <input type="number" name="durationHours" placeholder="Duration (hours)" value={formData.durationHours} onChange={handleChange} className="form-control" />
+      <select name="status" value={formData.status} onChange={handleChange} className="form-control">
+        <option value="draft">Draft</option>
+        <option value="active">Active</option>
+        <option value="archived">Archived</option>
+      </select>
+      <button type="submit" className="btn btn-primary" style={{ gridColumn: '1 / -1' }}>Create Course</button>
+    </form>
   );
 };
 
